@@ -5,6 +5,7 @@ Una aplicación web moderna de comercio electrónico especializada en la venta d
 ## 🚀 Características Principales
 
 ### Frontend
+
 - **Catálogo de Productos**: Visualización completa de frutos secos con imágenes, precios y descripciones
 - **Selector de Gramaje**: Opciones de 100g, 250g, 500g y 1kg con precios dinámicos
 - **Carrito de Compras**: Gestión completa de productos seleccionados
@@ -13,6 +14,7 @@ Una aplicación web moderna de comercio electrónico especializada en la venta d
 - **Diseño Responsivo**: Optimizado para dispositivos móviles y desktop
 
 ### Backend
+
 - **API RESTful**: Endpoints para productos y autenticación
 - **Base de Datos**: Configuración con MongoDB
 - **Autenticación**: Sistema de usuarios y sesiones
@@ -21,6 +23,7 @@ Una aplicación web moderna de comercio electrónico especializada en la venta d
 ## 🛠️ Tecnologías Utilizadas
 
 ### Frontend
+
 - **Next.js 14** - Framework de React con App Router
 - **React 18** - Biblioteca de interfaz de usuario
 - **TypeScript** - Tipado estático
@@ -28,6 +31,7 @@ Una aplicación web moderna de comercio electrónico especializada en la venta d
 - **Context API** - Gestión de estado global
 
 ### Backend
+
 - **Node.js** - Entorno de ejecución
 - **Express.js** - Framework web
 - **MongoDB** - Base de datos NoSQL
@@ -36,6 +40,7 @@ Una aplicación web moderna de comercio electrónico especializada en la venta d
 ## 📦 Instalación y Configuración
 
 ### Prerrequisitos
+
 - Node.js (versión 18 o superior)
 - npm o yarn
 - MongoDB (local o Atlas)
@@ -76,10 +81,10 @@ npm start
 Crea un archivo `.env` en el directorio backend:
 
 ```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/frutos_secos
-JWT_SECRET=tu_jwt_secret_aqui
-NODE_ENV=development
+PORT=
+MONGODB_URI=
+JWT_SECRET=
+NODE_ENV=
 ```
 
 ## 🌐 URLs de Acceso
@@ -90,16 +95,19 @@ NODE_ENV=development
 ## 📱 Funcionalidades Detalladas
 
 ### Página Principal
+
 - Hero section con productos destacados
 - Navegación intuitiva
 - Productos recomendados
 
 ### Catálogo de Productos
+
 - Grid responsivo de productos
 - Filtros y búsqueda
 - Paginación
 
 ### Página de Producto Individual
+
 - Galería de imágenes
 - Selector de gramaje (100g, 250g, 500g, 1kg)
 - Selector de cantidad
@@ -107,12 +115,14 @@ NODE_ENV=development
 - Productos relacionados en carrusel
 
 ### Carrito de Compras
+
 - Visualización de productos seleccionados
 - Modificación de cantidades
 - Cálculo automático de totales
 - Eliminación de productos
 
 ### Proceso de Checkout
+
 - **Paso 1**: Revisión del pedido
 - **Paso 2**: Información de envío
   - Envío a domicilio
@@ -123,3 +133,71 @@ NODE_ENV=development
   - Transferencia bancaria
 
 ## 🎨 Estructura del Proyecto
+
+web_frutos_secos/
+├── src/
+│ └── app/
+│ ├── components/ # Componentes reutilizables
+│ ├── context/ # Context providers
+│ ├── hooks/ # Custom hooks
+│ ├── utils/ # Utilidades
+│ ├── productos/ # Páginas de productos
+│ ├── carrito/ # Página del carrito
+│ ├── checkout/ # Proceso de checkout
+│ └── globals.css # Estilos globales
+├── backend/ # Servidor backend
+│ ├── models/ # Modelos de datos
+│ ├── routes/ # Rutas de la API
+│ ├── config/ # Configuraciones
+│ └── server.js # Servidor principal
+└── public/ # Archivos estáticos
+
+## 🚀 Scripts Disponibles
+
+### Levantar el Proyecto
+
+```powershell
+npm run dev:full     # Modo desarrollo
+```
+
+### Frontend
+
+```bash
+npm run dev          # Modo desarrollo
+npm run build        # Construir para producción
+npm run start        # Ejecutar en producción
+npm run lint         # Linter de código
+```
+
+### Backend
+
+```bash
+npm start            # Ejecutar servidor
+npm run dev          # Modo desarrollo con nodemon
+```
+
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## 👨‍💻 Autor
+
+**Victor Hernández Vivanco**
+
+- GitHub: [@Victor-Hernandez-Vivanco](https://github.com/Victor-Hernandez-Vivanco)
+
+## 📞 Soporte
+
+Si tienes alguna pregunta o necesitas ayuda, no dudes en abrir un issue en el repositorio.
+
+---
+
+⭐ ¡No olvides dar una estrella al proyecto si te ha sido útil!
