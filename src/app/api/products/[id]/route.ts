@@ -26,11 +26,13 @@ const verifyAdminToken = (request: NextRequest) => {
 // GET /api/products/[id] - Obtener producto por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
-    const product = await Product.findById(params.id);
+    // ✅ AWAIT params antes de usar sus propiedades
+    const { id } = await params;
+    const product = await Product.findById(id);
 
     if (!product) {
       return NextResponse.json(
@@ -52,7 +54,7 @@ export async function GET(
 // PUT /api/products/[id] - Actualizar producto
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación de admin
@@ -66,9 +68,11 @@ export async function PUT(
 
     await connectDB();
     const body = await request.json();
+    // ✅ AWAIT params antes de usar sus propiedades
+    const { id } = await params;
 
     const product = await Product.findByIdAndUpdate(
-      params.id,
+      id,
       { $set: body },
       { new: true }
     );
@@ -93,7 +97,7 @@ export async function PUT(
 // DELETE /api/products/[id] - Eliminar producto
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación de admin
@@ -106,8 +110,10 @@ export async function DELETE(
     }
 
     await connectDB();
+    // ✅ AWAIT params antes de usar sus propiedades
+    const { id } = await params;
 
-    const product = await Product.findByIdAndDelete(params.id);
+    const product = await Product.findByIdAndDelete(id);
 
     if (!product) {
       return NextResponse.json(

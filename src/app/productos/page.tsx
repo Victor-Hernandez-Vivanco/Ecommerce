@@ -14,6 +14,7 @@ interface Product {
   name: string
   description: string
   category: string
+  categories?: string[] // ✅ AGREGAR SOPORTE PARA MÚLTIPLES CATEGORÍAS
   basePricePer100g?: number
   pricesByWeight?: Array<{
     weight: number
@@ -27,22 +28,41 @@ interface Product {
   createdAt: string
 }
 
+interface WeightOption {
+  weight: number
+  price: number
+  stock: number
+  label: string
+}
+
 export default function ProductosPage() {
   const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [searchTerm, setSearchTerm] = useState('')
-  const [priceRange, setPriceRange] = useState([0, 50000])
+  // ✅ CORREGIR RANGOS DE PRECIO INICIALES
+  const [minPrice, setMinPrice] = useState(0)
+  const [maxPrice, setMaxPrice] = useState(50000)
+  const [sortBy, setSortBy] = useState('precio: bajo a alto')
+  const [showQuickView, setShowQuickView] = useState(false)
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
+  const [selectedWeight, setSelectedWeight] = useState<WeightOption | null>(null)
+  const [quantity, setQuantity] = useState(1)
 
+  // ✅ CATEGORÍAS ACTUALIZADAS SEGÚN ESPECIFICACIÓN
   const categories = [
-    { id: 'all', name: 'Todos los Productos' },
-    { id: 'Frutos Secos', name: 'Frutos Secos' },
-    { id: 'Mixes', name: 'Mixes' },
-    { id: 'Semillas', name: 'Semillas' },
-    { id: 'Deshidratados', name: 'Deshidratados' },
-    { id: 'Otros', name: 'Otros' }
+    'Todos',
+    'Frutos Secos', 
+    'Frutas Deshidratadas',
+    'Despensa',
+    'Semillas',
+    'Mix',
+    'Cereales',
+    'Snack',
+    'Full',
+    'Box'
   ]
 
   // ✅ FUNCIONES HELPER PARA OBTENER PRECIO Y STOCK
@@ -66,6 +86,18 @@ export default function ProductosPage() {
     return 0
   }
 
+  const getWeightOptions = (product: Product): WeightOption[] => {
+    if (product.pricesByWeight && product.pricesByWeight.length > 0) {
+      return product.pricesByWeight.map(pw => ({
+        weight: pw.weight,
+        price: pw.price,
+        stock: pw.stock,
+        label: `${pw.weight}g`
+      }))
+    }
+    return []
+  }
+
   useEffect(() => {
     loadProducts()
   }, [])
@@ -79,6 +111,7 @@ export default function ProductosPage() {
       
       if (response.ok) {
         const data = await response.json()
+        console.log('✅ Productos cargados:', data.length)
         setProducts(data || [])
       } else {
         throw new Error('Error al cargar productos')
@@ -92,21 +125,67 @@ export default function ProductosPage() {
     }
   }
 
+  // ✅ MEJORAR LÓGICA DE FILTRADO
   const filteredProducts = products.filter(product => {
     const productPrice = getProductPrice(product)
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
+    
+    // ✅ FILTRO DE CATEGORÍA MEJORADO - Incluir múltiples categorías
+    const matchesCategory = selectedCategory === 'Todos' || 
+                           product.category === selectedCategory ||
+                           (product.categories && product.categories.includes(selectedCategory))
+    
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesPrice = productPrice >= priceRange[0] && productPrice <= priceRange[1]
+    
+    // ✅ FILTRO DE PRECIO MÁS FLEXIBLE
+    const matchesPrice = productPrice === 0 || (productPrice >= minPrice && productPrice <= maxPrice)
+    
+    console.log('Filtro producto:', {
+      name: product.name,
+      category: product.category,
+      categories: product.categories,
+      price: productPrice,
+      matchesCategory,
+      matchesSearch,
+      matchesPrice,
+      selectedCategory
+    })
+    
     return matchesCategory && matchesSearch && matchesPrice
   })
 
-  const addToCart = (product: Product) => {
-    console.log('Agregado al carrito:', product)
-    alert(`${product.name} agregado al carrito`)
+  // ✅ FUNCIÓN PARA ABRIR VISTA RÁPIDA
+  const openQuickView = (product: Product) => {
+    setQuickViewProduct(product)
+    const weightOptions = getWeightOptions(product)
+    if (weightOptions.length > 0) {
+      setSelectedWeight(weightOptions[0])
+    }
+    setQuantity(1)
+    setShowQuickView(true)
   }
 
-  const navigateToProduct = (productId: string) => {
-    router.push(`/productos/${productId}`)
+  const closeQuickView = () => {
+    setShowQuickView(false)
+    setQuickViewProduct(null)
+    setSelectedWeight(null)
+    setQuantity(1)
+  }
+
+  // ✅ FUNCIÓN MODIFICADA PARA REDIRIGIR A LA PÁGINA DEL PRODUCTO
+  const goToProductPage = (product: Product) => {
+    router.push(`/productos/${product._id}`)
+  }
+
+  // Mantener la función addToCart para el modal de vista rápida
+  const addToCart = (product: Product, weight?: WeightOption | undefined, qty: number = 1) => {
+    console.log('Agregado al carrito:', { product, weight, quantity: qty })
+    alert(`${product.name} agregado al carrito`)
+    closeQuickView()
+  }
+
+  const getCurrentPrice = () => {
+    if (!selectedWeight || !quickViewProduct) return 0
+    return selectedWeight.price
   }
 
   return (
@@ -114,16 +193,14 @@ export default function ProductosPage() {
       <Navbar />
       
       <main className={styles.main}>
-        {/* Header de la página */}
-        <section className={styles.pageHeader}>
+        {/* Breadcrumb */}
+        <div className={styles.breadcrumb}>
           <div className={styles.container}>
-            <h1 className={styles.pageTitle}>Nuestros Productos</h1>
-            <p className={styles.pageSubtitle}>
-              Descubre nuestra amplia selección de frutos secos premium, 
-              cuidadosamente seleccionados para ofrecerte la mejor calidad.
-            </p>
+            <Link href="/">INICIO</Link>
+            <span>/</span>
+            <span>FRUTOS SECOS</span>
           </div>
-        </section>
+        </div>
 
         {/* Contenido principal */}
         <section className={styles.contentSection}>
@@ -150,44 +227,70 @@ export default function ProductosPage() {
 
                 {/* Filtro por categoría */}
                 <div className={styles.sidebarSection}>
-                  <h3 className={styles.sidebarTitle}>CATEGORÍAS</h3>
+                  <h3 className={styles.sidebarTitle}>CATEGORÍAS DEL PRODUCTO</h3>
                   <div className={styles.categoryList}>
                     {categories.map(category => (
-                      <label key={category.id} className={styles.categoryItem}>
-                        <input
-                          type="radio"
-                          name="category"
-                          value={category.id}
-                          checked={selectedCategory === category.id}
-                          onChange={(e) => setSelectedCategory(e.target.value)}
-                        />
-                        <span>{category.name}</span>
-                      </label>
+                      <div key={category} className={styles.categoryItem}>
+                        <button
+                          onClick={() => setSelectedCategory(category)}
+                          className={`${styles.categoryLink} ${
+                            selectedCategory === category ? styles.active : ''
+                          }`}
+                        >
+                          {category}
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Filtro por precio */}
+                {/* ✅ FILTRO POR PRECIO CON SLIDER CORREGIDO */}
                 <div className={styles.sidebarSection}>
-                  <h3 className={styles.sidebarTitle}>PRECIO</h3>
+                  <h3 className={styles.sidebarTitle}>FILTRAR POR PRECIO</h3>
                   <div className={styles.priceFilter}>
-                    <div className={styles.priceInputs}>
-                      <input
-                        type="number"
-                        placeholder="Mín"
-                        value={priceRange[0]}
-                        onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
-                        className={styles.priceInput}
-                      />
-                      <span>-</span>
-                      <input
-                        type="number"
-                        placeholder="Máx"
-                        value={priceRange[1]}
-                        onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 50000])}
-                        className={styles.priceInput}
-                      />
+                    {/* Slider de rango dual */}
+                    <div className={styles.priceSliderContainer}>
+                      <div className={styles.sliderTrack}>
+                        <div 
+                          className={styles.sliderRange}
+                          style={{
+                            left: `${(minPrice / 50000) * 100}%`,
+                            width: `${((maxPrice - minPrice) / 50000) * 100}%`
+                          }}
+                        ></div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="50000"
+                          value={minPrice}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value)
+                            if (value < maxPrice) {
+                              setMinPrice(value)
+                            }
+                          }}
+                          className={`${styles.rangeSlider} ${styles.rangeMin}`}
+                        />
+                        <input
+                          type="range"
+                          min="0"
+                          max="50000"
+                          value={maxPrice}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value)
+                            if (value > minPrice) {
+                              setMaxPrice(value)
+                            }
+                          }}
+                          className={`${styles.rangeSlider} ${styles.rangeMax}`}
+                        />
+                      </div>
                     </div>
+                    
+                    <div className={styles.priceDisplay}>
+                      Precio: ${minPrice.toLocaleString()} — ${maxPrice.toLocaleString()}
+                    </div>
+                    
                     <button className={styles.filterBtn} onClick={loadProducts}>
                       FILTRAR
                     </button>
@@ -209,114 +312,113 @@ export default function ProductosPage() {
                       🔄 Reintentar
                     </button>
                   </div>
-                ) : products.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <div className={styles.emptyIcon}>📦</div>
-                    <h3>No hay productos disponibles</h3>
-                    <p>Aún no se han agregado productos a la tienda.</p>
-                    <Link href="/" className={styles.backHomeBtn}>
-                      Volver al inicio
-                    </Link>
-                  </div>
-                ) : filteredProducts.length === 0 ? (
-                  <div className={styles.noResults}>
-                    <p>🔍 No se encontraron productos con los filtros aplicados</p>
-                    <button 
-                      onClick={() => {
-                        setSearchTerm('')
-                        setSelectedCategory('all')
-                        setPriceRange([0, 50000])
-                      }}
-                      className={styles.clearFiltersBtn}
-                    >
-                      Limpiar filtros
-                    </button>
-                  </div>
                 ) : (
                   <>
-                    <div className={styles.resultsInfo}>
-                      <p>{filteredProducts.length} productos encontrados</p>
+                    {/* Header de resultados */}
+                    <div className={styles.resultsHeader}>
+                      <p className={styles.resultsCount}>
+                        Mostrando los {filteredProducts.length} resultados
+                      </p>
+                      <div className={styles.sortContainer}>
+                        <label>Ordenar por precio:</label>
+                        <select 
+                          value={sortBy} 
+                          onChange={(e) => setSortBy(e.target.value)}
+                          className={styles.sortSelect}
+                        >
+                          <option value="precio: bajo a alto">bajo a alto</option>
+                          <option value="precio: alto a bajo">alto a bajo</option>
+                        </select>
+                      </div>
                     </div>
                     
-                    <div className={styles.productsGrid}>
-                      {filteredProducts.map(product => (
-                        <div key={product._id} className={styles.productCard}>
-                          <div className={styles.productImage}>
-                            {/* ✅ CORREGIDO: Cambiar <image> por <Image> de Next.js */}
-                            <Image
-                              src={product.image || '/placeholder-product.jpg'}
-                              alt={product.name}
-                              width={300}
-                              height={200}
-                              style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.src = '/placeholder-product.jpg'
-                              }}
-                            />
+                    {filteredProducts.length === 0 ? (
+                      <div className={styles.noResults}>
+                        <p>🔍 No se encontraron productos con los filtros aplicados</p>
+                        <button 
+                          onClick={() => {
+                            setSearchTerm('')
+                            setSelectedCategory('Todos')
+                            setMinPrice(0)
+                            setMaxPrice(50000)
+                            loadProducts()
+                          }}
+                          className={styles.clearFiltersBtn}
+                        >
+                          Limpiar filtros
+                        </button>
+                      </div>
+                    ) : (
+                      <div className={styles.productsGrid}>
+                        {filteredProducts.map(product => (
+                          <div 
+                            key={product._id} 
+                            className={styles.productCard}
+                          >
+                            <div className={styles.productImageContainer}>
+                              <Image
+                                src={product.image || '/placeholder-product.jpg'}
+                                alt={product.name}
+                                width={300}
+                                height={200}
+                                style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = '/placeholder-product.jpg'
+                                }}
+                              />
+                              
+                              {/* Overlay de vista rápida */}
+                              <div className={styles.productOverlay}>
+                                <button 
+                                  className={styles.quickViewBtn}
+                                  onClick={() => openQuickView(product)}
+                                >
+                                  VISTA RÁPIDA
+                                </button>
+                              </div>
+                              
+                              {product.featured && (
+                                <div className={styles.featuredBadge}>¡Destacado!</div>
+                              )}
+                            </div>
                             
-                            {product.featured && (
-                              <div className={styles.featuredBadge}>⭐ Destacado</div>
-                            )}
-                            
-                            {product.discount && product.discount > 0 && (
-                              <div className={styles.discountBadge}>-{product.discount}%</div>
-                            )}
-                            
-                            {getProductStock(product) <= 5 && getProductStock(product) > 0 && (
-                              <div className={styles.lowStockBadge}>⚠️ Últimas unidades</div>
-                            )}
-                            
-                            {getProductStock(product) === 0 && (
-                              <div className={styles.outOfStockBadge}>Agotado</div>
-                            )}
-                          </div>
-                          
-                          <div className={styles.productInfo}>
-                            <h3 className={styles.productName}>{product.name}</h3>
-                            <p className={styles.productDescription}>{product.description}</p>
-                            <div className={styles.productFooter}>
+                            <div className={styles.productInfo}>
+                              <p className={styles.productCategory}>{product.category}</p>
+                              <h3 className={styles.productName}>{product.name}</h3>
                               <div className={styles.priceContainer}>
-                                {/* ✅ CORREGIDO: Usar función helper para precio */}
-                                {product.discount && product.discount > 0 ? (
-                                  <>
-                                    <span className={styles.originalPrice}>
-                                      ${getProductPrice(product).toLocaleString()}
-                                    </span>
-                                    <span className={styles.discountPrice}>
-                                      ${Math.round(getProductPrice(product) * (1 - product.discount / 100)).toLocaleString()}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span className={styles.price}>
-                                    ${getProductPrice(product).toLocaleString()} CLP/100g
+                                <span className={styles.price}>
+                                  ${getProductPrice(product).toLocaleString()}
+                                </span>
+                                {product.discount > 0 && (
+                                  <span className={styles.originalPrice}>
+                                    ${Math.round(getProductPrice(product) * 1.2).toLocaleString()}
                                   </span>
                                 )}
                               </div>
                               
                               <div className={styles.productActions}>
                                 <button
-                                  onClick={() => navigateToProduct(product._id)}
-                                  className={styles.viewBtn}
+                                  onClick={() => openQuickView(product)}
+                                  className={styles.selectOptionsBtn}
                                 >
-                                  <i className="fas fa-eye"></i>
-                                  Ver
+                                  SELECCIONAR OPCIONES
                                 </button>
                                 
+                                {/* ✅ BOTÓN MODIFICADO PARA REDIRIGIR A LA PÁGINA DEL PRODUCTO */}
                                 <button
-                                  onClick={() => addToCart(product)}
+                                  onClick={() => goToProductPage(product)}
                                   className={styles.addToCartBtn}
                                   disabled={getProductStock(product) === 0}
                                 >
-                                  <i className="fas fa-shopping-cart"></i>
-                                  {getProductStock(product) === 0 ? 'Agotado' : 'Agregar'}
+                                  VER PRODUCTO
                                 </button>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -324,6 +426,95 @@ export default function ProductosPage() {
           </div>
         </section>
       </main>
+      
+      {/* Modal de Vista Rápida */}
+      {showQuickView && quickViewProduct && (
+        <div className={styles.modalOverlay} onClick={closeQuickView}>
+          <div className={styles.quickViewModal} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.closeBtn} onClick={closeQuickView}>
+              ×
+            </button>
+            
+            <div className={styles.modalContent}>
+              <div className={styles.modalImage}>
+                <Image
+                  src={quickViewProduct.image || '/placeholder-product.jpg'}
+                  alt={quickViewProduct.name}
+                  width={400}
+                  height={300}
+                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                />
+              </div>
+              
+              <div className={styles.modalInfo}>
+                <h2 className={styles.modalTitle}>{quickViewProduct.name}</h2>
+                <div className={styles.modalPrice}>
+                  ${getCurrentPrice().toLocaleString('es-CL')}
+                  {selectedWeight && (
+                    <span className={styles.weightInfo}> / {selectedWeight.label}</span>
+                  )}
+                </div>
+                
+                <p className={styles.modalDescription}>{quickViewProduct.description}</p>
+                
+                <div className={styles.modalCategory}>
+                  <strong>Categoría:</strong> {quickViewProduct.category}
+                </div>
+                
+                {/* Selector de peso */}
+                {getWeightOptions(quickViewProduct).length > 0 && (
+                  <div className={styles.weightSelector}>
+                    <label>Elige una opción:</label>
+                    <select 
+                      value={selectedWeight?.weight || ''}
+                      onChange={(e) => {
+                        const weight = parseInt(e.target.value)
+                        const option = getWeightOptions(quickViewProduct).find(w => w.weight === weight)
+                        setSelectedWeight(option || null)
+                      }}
+                      className={styles.weightSelect}
+                    >
+                      {getWeightOptions(quickViewProduct).map((option) => (
+                        <option key={option.weight} value={option.weight}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
+                {/* Selector de cantidad */}
+                <div className={styles.quantitySelector}>
+                  <label>Cantidad:</label>
+                  <div className={styles.quantityControls}>
+                    <button 
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className={styles.quantityBtn}
+                    >
+                      -
+                    </button>
+                    <span className={styles.quantity}>{quantity}</span>
+                    <button 
+                      onClick={() => setQuantity(quantity + 1)}
+                      className={styles.quantityBtn}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => addToCart(quickViewProduct, selectedWeight || undefined, quantity)}
+                  className={styles.modalAddToCartBtn}
+                  disabled={!selectedWeight}
+                >
+                  AÑADIR AL CARRITO
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <Footer />
     </div>

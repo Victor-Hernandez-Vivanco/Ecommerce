@@ -11,15 +11,23 @@ interface Product {
   name: string;
   description: string;
   category: string;
+  categories?: string[];
   basePricePer100g?: number;
+  pricePerKilo?: number;
   pricesByWeight?: Array<{
     weight: number;
     price: number;
     stock: number;
   }>;
   totalStock?: number;
-  image: string;
+  images?: Array<{
+    url: string;
+    isPrimary: boolean;
+  }>;
+  image?: string;
   featured: boolean;
+  isAdvertisement?: boolean;
+  isMainCarousel?: boolean;
   discount: number;
   createdAt: string;
 }
@@ -37,21 +45,38 @@ export default function ProductosAdmin() {
   const categories = [
     { id: 'all', name: 'Todas las categorías' },
     { id: 'Frutos Secos', name: 'Frutos Secos' },
+    { id: 'Frutas Deshidratadas', name: 'Frutas Deshidratadas' },
+    { id: 'Despensa', name: 'Despensa' },
     { id: 'Semillas', name: 'Semillas' },
-    { id: 'Deshidratados', name: 'Deshidratados' },
-    { id: 'Mixes', name: 'Mixes' },
-    { id: 'Otros', name: 'Otros' }
+    { id: 'Mix', name: 'Mix' },
+    { id: 'Cereales', name: 'Cereales' },
+    { id: 'Snack', name: 'Snack' },
+    { id: 'Full', name: 'Full' },
+    { id: 'Box', name: 'Box' }
   ];
+
+  // ✅ FUNCIÓN HELPER PARA OBTENER IMAGEN PRINCIPAL
+  const getProductImage = (product: Product) => {
+    if (product.images && product.images.length > 0) {
+      const primaryImage = product.images.find(img => img.isPrimary);
+      return primaryImage ? primaryImage.url : product.images[0].url;
+    }
+    return product.image || '';
+  };
 
   // ✅ FUNCIÓN HELPER PARA OBTENER PRECIO
   const getProductPrice = (product: Product) => {
+    if (product.pricePerKilo) {
+      return `$${product.pricePerKilo.toLocaleString()}/kg`;
+    }
     if (product.basePricePer100g) {
-      return product.basePricePer100g;
+      return `$${product.basePricePer100g.toLocaleString()}/100g`;
     }
     if (product.pricesByWeight && product.pricesByWeight.length > 0) {
-      return Math.min(...product.pricesByWeight.map(p => p.price));
+      const minPrice = Math.min(...product.pricesByWeight.map(p => p.price));
+      return `Desde $${minPrice.toLocaleString()}`;
     }
-    return 0;
+    return 'Sin precio';
   };
 
   // ✅ FUNCIÓN HELPER PARA OBTENER STOCK
@@ -65,7 +90,14 @@ export default function ProductosAdmin() {
     return 0;
   };
 
-  // ✅ CORREGIDO: Usar useCallback para fetchProducts
+  // ✅ FUNCIÓN HELPER PARA OBTENER CATEGORÍAS
+  const getProductCategories = (product: Product) => {
+    if (product.categories && product.categories.length > 0) {
+      return product.categories.join(', ');
+    }
+    return product.category || 'Sin categoría';
+  };
+
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
@@ -97,9 +129,8 @@ export default function ProductosAdmin() {
     } finally {
       setLoading(false);
     }
-  }, [router]); // ✅ router como dependencia
+  }, [router]);
 
-  // ✅ CORREGIDO: Agregar fetchProducts a las dependencias
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
@@ -171,7 +202,9 @@ export default function ProductosAdmin() {
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || 
+      product.category === selectedCategory ||
+      (product.categories && product.categories.includes(selectedCategory));
     return matchesSearch && matchesCategory;
   });
 
@@ -210,7 +243,7 @@ export default function ProductosAdmin() {
           </div>
         )}
 
-        {/* Filtros - Solo mostrar si hay productos */}
+        {/* Filtros */}
         {products.length > 0 && (
           <section className={styles.filtersSection}>
             <div className={styles.searchContainer}>
@@ -237,7 +270,7 @@ export default function ProductosAdmin() {
           </section>
         )}
 
-        {/* Lista de productos */}
+        {/* ✅ NUEVA VISTA DE LISTA */}
         <section className={styles.productsSection}>
           <div className={styles.productsHeader}>
             <h2>Productos ({filteredProducts.length})</h2>
@@ -266,83 +299,146 @@ export default function ProductosAdmin() {
               </button>
             </div>
           ) : (
-            <div className={styles.productsGrid}>
-              {filteredProducts.map(product => (
-                <div key={product._id} className={styles.productCard}>
-                  <div className={styles.productImage}>
-                    <div className={styles.imagePlaceholder}>
-                      {product.image ? (
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          width={200}
-                          height={150}
-                          style={{ objectFit: 'cover' }}
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            const parent = target.parentElement;
-                            if (parent) {
-                              parent.innerHTML = `<div class="${styles.fallbackImage}">📦<br/>${product.name}</div>`;
-                            }
-                          }}
-                        />
-                      ) : (
-                        <div className={styles.fallbackImage}>
-                          📦<br/>{product.name}
-                        </div>
-                      )}
+            <div className={styles.productsList}>
+              {/* ✅ ENCABEZADO DE LA TABLA */}
+              <div className={styles.listHeader}>
+                <div className={styles.headerCell}>Imagen</div>
+                <div className={styles.headerCell}>Producto</div>
+                <div className={styles.headerCell}>Categorías</div>
+                <div className={styles.headerCell}>Precio</div>
+                <div className={styles.headerCell}>Stock</div>
+                <div className={styles.headerCell}>Estado</div>
+                <div className={styles.headerCell}>Acciones</div>
+              </div>
+
+              {/* ✅ FILAS DE PRODUCTOS */}
+              {filteredProducts.map(product => {
+                const stock = getProductStock(product);
+                const isLowStock = stock <= 5;
+                const isOutOfStock = stock === 0;
+
+                return (
+                  <div key={product._id} className={styles.listRow}>
+                    {/* Imagen */}
+                    <div className={styles.listCell}>
+                      <div className={styles.productImageSmall}>
+                        {getProductImage(product) ? (
+                          <Image
+                            src={getProductImage(product)}
+                            alt={product.name}
+                            width={60}
+                            height={60}
+                            style={{ objectFit: 'cover' }}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = `<div class="${styles.fallbackImageSmall}">📦</div>`;
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className={styles.fallbackImageSmall}>📦</div>
+                        )}
+                      </div>
                     </div>
-                    
-                    {product.featured && (
-                      <div className={styles.featuredBadge}>⭐ Destacado</div>
-                    )}
-                    
-                    {getProductStock(product) <= 5 && (
-                      <div className={styles.lowStockBadge}>⚠️ Stock Bajo</div>
-                    )}
+
+                    {/* Información del producto */}
+                    <div className={styles.listCell}>
+                      <div className={styles.productDetails}>
+                        <h3 className={styles.productNameList}>{product.name}</h3>
+                        <p className={styles.productDescription}>
+                          {product.description.length > 80 
+                            ? `${product.description.substring(0, 80)}...` 
+                            : product.description
+                          }
+                        </p>
+                        <span className={styles.productId}>ID: {product._id}</span>
+                      </div>
+                    </div>
+
+                    {/* Categorías */}
+                    <div className={styles.listCell}>
+                      <div className={styles.categoriesList}>
+                        {getProductCategories(product)}
+                      </div>
+                    </div>
+
+                    {/* Precio */}
+                    <div className={styles.listCell}>
+                      <div className={styles.priceInfo}>
+                        {getProductPrice(product)}
+                        {product.discount > 0 && (
+                          <span className={styles.discountBadge}>-{product.discount}%</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Stock */}
+                    <div className={styles.listCell}>
+                      <div className={`${styles.stockInfo} ${
+                        isOutOfStock ? styles.outOfStock : 
+                        isLowStock ? styles.lowStock : styles.inStock
+                      }`}>
+                        {stock} unidades
+                      </div>
+                    </div>
+
+                    {/* Estado */}
+                    <div className={styles.listCell}>
+                      <div className={styles.statusBadges}>
+                        {product.featured && (
+                          <span className={styles.featuredBadgeList}>⭐ Destacado</span>
+                        )}
+                        {product.isAdvertisement && (
+                          <span className={styles.adBadge}>📢 Publicidad</span>
+                        )}
+                        {product.isMainCarousel && (
+                          <span className={styles.carouselBadge}>🎠 Carrusel</span>
+                        )}
+                        {isLowStock && !isOutOfStock && (
+                          <span className={styles.lowStockBadgeList}>⚠️ Stock Bajo</span>
+                        )}
+                        {isOutOfStock && (
+                          <span className={styles.outOfStockBadge}>❌ Agotado</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Acciones */}
+                    <div className={styles.listCell}>
+                      <div className={styles.actionsList}>
+                        <button
+                          onClick={() => toggleFeatured(product)}
+                          className={`${styles.actionBtnList} ${
+                            product.featured ? styles.featuredActive : styles.featuredInactive
+                          }`}
+                          title={product.featured ? 'Quitar de destacados' : 'Marcar como destacado'}
+                        >
+                          {product.featured ? '⭐' : '☆'}
+                        </button>
+                        
+                        <Link
+                          href={`/admin/productos/editar/${product._id}`}
+                          className={`${styles.actionBtnList} ${styles.editBtnList}`}
+                          title="Editar producto"
+                        >
+                          ✏️
+                        </Link>
+                        
+                        <button
+                          onClick={() => handleDeleteProduct(product)}
+                          className={`${styles.actionBtnList} ${styles.deleteBtnList}`}
+                          title="Eliminar producto"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className={styles.productInfo}>
-                    <h3 className={styles.productName}>{product.name}</h3>
-                    <p className={styles.productCategory}>{product.category}</p>
-                    {/* ✅ CORREGIDO: Usar función helper para precio */}
-                    <p className={styles.productPrice}>
-                      ${getProductPrice(product).toLocaleString()} CLP/100g
-                    </p>
-                    {/* ✅ CORREGIDO: Usar función helper para stock */}
-                    <p className={styles.productStock}>
-                      Stock: {getProductStock(product)}
-                    </p>
-                  </div>
-                  
-                  <div className={styles.productActions}>
-                    <button
-                      onClick={() => toggleFeatured(product)}
-                      className={`${styles.actionBtn} ${product.featured ? styles.featured : styles.notFeatured}`}
-                      title={product.featured ? 'Quitar de destacados' : 'Marcar como destacado'}
-                    >
-                      {product.featured ? '⭐' : '☆'}
-                    </button>
-                    
-                    <Link
-                      href={`/admin/productos/editar/${product._id}`}
-                      className={`${styles.actionBtn} ${styles.editBtn}`}
-                      title="Editar producto"
-                    >
-                      ✏️
-                    </Link>
-                    
-                    <button
-                      onClick={() => handleDeleteProduct(product)}
-                      className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                      title="Eliminar producto"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

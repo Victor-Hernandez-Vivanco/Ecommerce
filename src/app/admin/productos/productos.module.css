@@ -480,12 +480,35 @@
   min-height: 100px;
 }
 
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
 .checkboxLabel {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
   cursor: pointer;
-  color: #4a5568;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.checkboxLabel:hover {
+  background-color: #f9fafb;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  margin: 0;
+}
+
+.checkboxLabel span {
+  user-select: none;
 }
 
 .checkbox {
@@ -886,4 +909,593 @@
 .placeholderImage small {
   font-size: 0.8rem;
   opacity: 0.8;
+}
+
+/* ✅ ESTILOS PARA SELECTOR MÚLTIPLE DE CATEGORÍAS */
+.categoriesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.categoryCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.categoryCheckbox:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.categoryCheckbox input[type="checkbox"]:checked + .categoryLabel {
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+.categoryLabel {
+  font-size: 0.9rem;
+  color: #495057;
+  user-select: none;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #0d6efd;
+}
+
+/* ✅ ESTILOS PARA PRECIOS CALCULADOS Y STOCK */
+.pricesSection {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.sectionTitle {
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pricesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.priceItem {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.priceItem:hover {
+  border-color: #3182ce;
+  box-shadow: 0 2px 8px rgba(49, 130, 206, 0.1);
+}
+
+.weightLabel {
+  font-weight: 600;
+  color: #2d3748;
+  background: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.priceValue {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #38a169;
+  text-align: center;
+  padding: 0.5rem;
+  background: #f0fff4;
+  border-radius: 4px;
+}
+
+.stockInput {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stockInput label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.stockInput input {
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.stockInput input:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+/* ✅ ESTILOS PARA CATEGORÍAS MÚLTIPLES */
+.categoriesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.categoryItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.categoryItem:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.categoryCheckbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #3182ce;
+  margin: 0;
+}
+
+.categoryLabel {
+  color: #495057;
+  user-select: none;
+  font-weight: 500;
+}
+
+.categoryItem input[type="checkbox"]:checked + .categoryLabel {
+  font-weight: 600;
+  color: #3182ce;
+}
+
+/* ✅ ESTILOS PARA IMÁGENES EN EDICIÓN */
+.imagesSection {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #f8f9fa;
+}
+
+.imagesList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.imageItem {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.imagePreview {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.imagePreview img {
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.primaryBadge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #38a169;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.imageInfo {
+  font-size: 0.8rem;
+  color: #4a5568;
+}
+
+.imageName {
+  margin: 0 0 0.25rem 0;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.imageSize {
+  margin: 0;
+  color: #718096;
+}
+
+.noImages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #718096;
+  text-align: center;
+}
+
+.noImages span {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.noImages p {
+  margin: 0.25rem 0;
+}
+
+.note {
+  font-size: 0.8rem;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* ✅ RESPONSIVE PARA NUEVOS ELEMENTOS */
+@media (max-width: 768px) {
+  .pricesGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .categoriesGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .imagesList {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+  
+  .priceItem {
+    padding: 0.75rem;
+  }
+  
+  .categoryItem {
+    padding: 0.75rem;
+  }
+}
+
+/* ✅ ESTILOS PARA VISTA DE LISTA */
+.productsList {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.listHeader {
+  display: grid;
+  grid-template-columns: 80px 2fr 1fr 1fr 100px 1.5fr 120px;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.headerCell {
+  display: flex;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.listRow {
+  display: grid;
+  grid-template-columns: 80px 2fr 1fr 1fr 100px 1.5fr 120px;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+  align-items: center;
+}
+
+.listRow:hover {
+  background-color: #f8f9fa;
+}
+
+.listRow:last-child {
+  border-bottom: none;
+}
+
+.listCell {
+  display: flex;
+  align-items: center;
+}
+
+/* ✅ IMAGEN PEQUEÑA */
+.productImageSmall {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+}
+
+.fallbackImageSmall {
+  font-size: 1.5rem;
+  color: #6c757d;
+}
+
+/* ✅ DETALLES DEL PRODUCTO */
+.productDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.productNameList {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.productDescription {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.productId {
+  font-size: 0.75rem;
+  color: #adb5bd;
+  font-family: monospace;
+}
+
+/* ✅ CATEGORÍAS */
+.categoriesList {
+  font-size: 0.9rem;
+  color: #495057;
+  background: #e9ecef;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* ✅ PRECIO */
+.priceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-weight: 600;
+  color: #28a745;
+}
+
+.discountBadge {
+  background: #dc3545;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* ✅ STOCK */
+.stockInfo {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.inStock {
+  background: #d4edda;
+  color: #155724;
+}
+
+.lowStock {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.outOfStock {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* ✅ BADGES DE ESTADO */
+.statusBadges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.featuredBadgeList {
+  background: #ffc107;
+  color: #212529;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.adBadge {
+  background: #17a2b8;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.carouselBadge {
+  background: #6f42c1;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.lowStockBadgeList {
+  background: #ffc107;
+  color: #212529;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.outOfStockBadge {
+  background: #dc3545;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* ✅ ACCIONES */
+.actionsList {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionBtnList {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.featuredActive {
+  background: #ffc107;
+  color: #212529;
+}
+
+.featuredInactive {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+.editBtnList {
+  background: #007bff;
+  color: white;
+}
+
+.deleteBtnList {
+  background: #dc3545;
+  color: white;
+}
+
+.actionBtnList:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ✅ RESPONSIVE PARA LISTA */
+@media (max-width: 1200px) {
+  .listHeader,
+  .listRow {
+    grid-template-columns: 60px 2fr 1fr 1fr 80px 1fr 100px;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .productImageSmall {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .listHeader,
+  .listRow {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .listHeader {
+    display: none;
+  }
+  
+  .listRow {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    background: white;
+  }
+  
+  .listCell {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fa;
+  }
+  
+  .listCell:last-child {
+    border-bottom: none;
+  }
+  
+  .productDetails {
+    text-align: left;
+  }
+  
+  .actionsList {
+    justify-content: center;
+    padding-top: 0.5rem;
+  }
 }

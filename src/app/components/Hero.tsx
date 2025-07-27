@@ -1,6 +1,19 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
 import styles from './Hero.module.css'
 
 export default function Hero() {
+  const router = useRouter()
+
+  const goToProducts = () => {
+    router.push('/productos')
+  }
+
+  const goToAbout = () => {
+    router.push('/sobre-nosotros')
+  }
+
   return (
     <section className={styles.hero}>
       <div className={styles.heroContent}>
@@ -10,8 +23,19 @@ export default function Hero() {
           Directamente del campo a tu mesa, con la mejor calidad garantizada.
         </p>
         <div className={styles.heroButtons}>
-          <button className="btn btn-primary">Ver Catálogo</button>
-          <button className="btn btn-secondary">Conocer Más</button>
+          {/* ✅ BOTÓN QUE REDIRIGE A LA PÁGINA DE PRODUCTOS */}
+          <button 
+            className="btn btn-primary"
+            onClick={goToProducts}
+          >
+            Ver Catálogo
+          </button>
+          <button 
+            className="btn btn-secondary"
+            onClick={goToAbout}
+          >
+            Conocer Más
+          </button>
         </div>
       </div>
     </section>

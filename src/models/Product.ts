@@ -123,7 +123,39 @@ const ProductSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ["Frutos Secos", "Semillas", "Deshidratados", "Mixes", "Otros"],
+    enum: [
+      "Frutos Secos", 
+      "Frutas Deshidratadas", 
+      "Despensa", 
+      "Semillas", 
+      "Mix", 
+      "Cereales", 
+      "Snack", 
+      "Full", 
+      "Box"
+    ],
+  },
+  // ✅ NUEVO CAMPO PARA MÚLTIPLES CATEGORÍAS
+  categories: {
+    type: [String],
+    required: false,
+    validate: {
+      validator: function(categories: string[]) {
+        const validCategories = [
+          "Frutos Secos", 
+          "Frutas Deshidratadas", 
+          "Despensa", 
+          "Semillas", 
+          "Mix", 
+          "Cereales", 
+          "Snack", 
+          "Full", 
+          "Box"
+        ];
+        return categories.every(cat => validCategories.includes(cat));
+      },
+      message: "Una o más categorías no son válidas"
+    }
   },
   totalStock: {
     type: Number,
@@ -131,6 +163,15 @@ const ProductSchema = new mongoose.Schema({
     min: 0,
   },
   featured: {
+    type: Boolean,
+    default: false,
+  },
+  // ✅ NUEVOS CAMPOS PARA CARRUSELES
+  isAdvertisement: {
+    type: Boolean,
+    default: false,
+  },
+  isMainCarousel: {
     type: Boolean,
     default: false,
   },
@@ -159,7 +200,7 @@ const ProductSchema = new mongoose.Schema({
 // ✅ MIDDLEWARE PRE-VALIDATE: Calcular campos antes de validación
 ProductSchema.pre("validate", function (next) {
   console.log("🔄 Pre-validate ejecutándose...");
-  
+
   // Calcular precio base por 100g
   if (this.pricePerKilo) {
     this.basePricePer100g = Math.round((this.pricePerKilo * 100) / 1000);
@@ -168,7 +209,9 @@ ProductSchema.pre("validate", function (next) {
 
   // Establecer imagen principal
   if (this.images && this.images.length > 0) {
-    const primaryImage = this.images.find((img: IProductImage) => img.isPrimary);
+    const primaryImage = this.images.find(
+      (img: IProductImage) => img.isPrimary
+    );
     this.image = primaryImage ? primaryImage.url : this.images[0].url;
     console.log("✅ Imagen principal establecida:", this.image);
   }
@@ -179,7 +222,7 @@ ProductSchema.pre("validate", function (next) {
 // ✅ MIDDLEWARE PRE-SAVE: Calcular precios y stock
 ProductSchema.pre("save", function (next) {
   console.log("🔄 Pre-save ejecutándose...");
-  
+
   // Calcular precios automáticamente
   if (this.pricePerKilo && this.pricesByWeight) {
     this.pricesByWeight.forEach((item) => {
@@ -191,7 +234,7 @@ ProductSchema.pre("save", function (next) {
       (total: number, item) => total + item.stock,
       0
     );
-    
+
     console.log("✅ Precios y stock calculados");
   }
 

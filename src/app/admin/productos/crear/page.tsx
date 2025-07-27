@@ -25,16 +25,25 @@ interface ProductForm {
   pricesByWeight: PriceByWeight[];
   images: ProductImage[];
   category: string;
+  categories: string[];
   featured: boolean;
+  // ✅ NUEVOS CAMPOS PARA CARRUSELES
+  isAdvertisement: boolean;
+  isMainCarousel: boolean;
   discount: number;
 }
 
-// ✅ PESOS ESTÁNDAR DISPONIBLES
-const AVAILABLE_WEIGHTS = [
-  { value: 100, label: '100g' },
-  { value: 250, label: '250g' },
-  { value: 500, label: '500g' },
-  { value: 1000, label: '1kg' }
+// ✅ CATEGORÍAS ACTUALIZADAS
+const categories = [
+  'Frutos Secos',
+  'Frutas Deshidratadas',
+  'Despensa',
+  'Semillas',
+  'Mix',
+  'Cereales',
+  'Snack',
+  'Full',
+  'Box'
 ];
 
 export default function CrearProducto() {
@@ -52,18 +61,44 @@ export default function CrearProducto() {
     ],
     images: [],
     category: 'Frutos Secos',
+    categories: ['Frutos Secos'],
     featured: false,
+    // ✅ NUEVOS CAMPOS INICIALIZADOS
+    isAdvertisement: false,
+    isMainCarousel: false,
     discount: 0
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const categories = [
-    'Frutos Secos',
-    'Semillas',
-    'Deshidratados',
-    'Mixes',
-    'Otros'
+  // ✅ MANEJAR SELECCIÓN MÚLTIPLE DE CATEGORÍAS
+  const handleCategoryChange = (category: string, isChecked: boolean) => {
+    if (isChecked) {
+      // Agregar categoría
+      const newCategories = [...formData.categories, category];
+      setFormData(prev => ({
+        ...prev,
+        categories: newCategories,
+        category: newCategories[0] // La primera será la principal
+      }));
+    } else {
+      // Remover categoría
+      const newCategories = formData.categories.filter(cat => cat !== category);
+      setFormData(prev => ({
+        ...prev,
+        categories: newCategories,
+        category: newCategories[0] || 'Frutos Secos' // Fallback si se queda vacío
+      }));
+    }
+  };
+
+  // ✅ PESOS ESTÁNDAR DISPONIBLES
+  const AVAILABLE_WEIGHTS = [
+    { value: 100, label: '100g' },
+    { value: 250, label: '250g' },
+    { value: 500, label: '500g' },
+    { value: 1000, label: '1kg' }
   ];
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // ✅ CALCULAR PRECIOS AUTOMÁTICAMENTE
   const calculatePrices = (pricePerKilo: number) => {
@@ -178,37 +213,42 @@ export default function CrearProducto() {
     }
   };
 
-  // ✅ VALIDACIÓN MEJORADA
+  // ✅ VALIDACIÓN MEJORADA PARA MÚLTIPLES CATEGORÍAS
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-
+  
     if (!formData.name.trim()) {
       newErrors.name = 'El nombre es requerido';
     }
-
+  
     if (!formData.description.trim()) {
       newErrors.description = 'La descripción es requerida';
     }
-
+  
     if (formData.pricePerKilo <= 0) {
       newErrors.pricePerKilo = 'El precio por kilo debe ser mayor a 0';
     }
-
+  
+    // ✅ VALIDAR CATEGORÍAS MÚLTIPLES
+    if (formData.categories.length === 0) {
+      newErrors.categories = 'Debe seleccionar al menos una categoría';
+    }
+  
     // Validar que al menos un peso tenga stock
     const hasStock = formData.pricesByWeight.some(p => p.stock > 0);
     if (!hasStock) {
       newErrors.stock = 'Debe especificar stock para al menos un peso';
     }
-
+  
     // Validar imágenes
     if (formData.images.length === 0) {
       newErrors.images = 'Debe subir al menos una imagen';
     }
-
+  
     if (formData.discount < 0 || formData.discount > 100) {
       newErrors.discount = 'El descuento debe estar entre 0 y 100';
     }
-
+  
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -262,7 +302,7 @@ export default function CrearProducto() {
         }
       }
 
-      // ✅ CREAR PRODUCTO CON MÚLTIPLES IMÁGENES
+      // ✅ CREAR PRODUCTO CON NUEVOS CAMPOS
       const productData = {
         name: formData.name,
         description: formData.description,
@@ -270,7 +310,11 @@ export default function CrearProducto() {
         pricesByWeight: formData.pricesByWeight,
         images: uploadedImages,
         category: formData.category,
+        categories: formData.categories,
         featured: formData.featured,
+        // ✅ NUEVOS CAMPOS PARA CARRUSELES
+        isAdvertisement: formData.isAdvertisement,
+        isMainCarousel: formData.isMainCarousel,
         discount: formData.discount
       };
 
@@ -348,7 +392,7 @@ export default function CrearProducto() {
                   {errors.description && <span className={styles.errorText}>{errors.description}</span>}
                 </div>
 
-                {/* ✅ PRECIO POR KILO */}
+                {/* ✅ PRECIO POR KILO CON STEP DE 10 */}
                 <div className={styles.formGroup}>
                   <label htmlFor="pricePerKilo" className={styles.label}>
                     Precio por Kilo (CLP) *
@@ -362,7 +406,7 @@ export default function CrearProducto() {
                     className={`${styles.input} ${errors.pricePerKilo ? styles.inputError : ''}`}
                     placeholder="Ej: 15000"
                     min="0"
-                    step="100"
+                    step="10"
                   />
                   {errors.pricePerKilo && <span className={styles.errorText}>{errors.pricePerKilo}</span>}
                   <small className={styles.helpText}>
@@ -404,24 +448,33 @@ export default function CrearProducto() {
                   {errors.stock && <span className={styles.errorText}>{errors.stock}</span>}
                 </div>
 
+                {/* ✅ NUEVA SECCIÓN PARA MÚLTIPLES CATEGORÍAS */}
                 <div className={styles.formRow}>
+                  {/* ✅ REEMPLAZAR EL SELECT POR SELECTOR MÚLTIPLE */}
                   <div className={styles.formGroup}>
-                    <label htmlFor="category" className={styles.label}>
-                      Categoría *
+                    <label className={styles.label}>
+                      Categorías * (Selecciona una o más)
                     </label>
-                    <select
-                      id="category"
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      className={styles.select}
-                    >
+                    <div className={styles.categoriesGrid}>
                       {categories.map(category => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
+                        <label key={category} className={styles.categoryCheckbox}>
+                          <input
+                            type="checkbox"
+                            checked={formData.categories.includes(category)}
+                            onChange={(e) => handleCategoryChange(category, e.target.checked)}
+                            className={styles.checkbox}
+                          />
+                          <span className={styles.categoryLabel}>{category}</span>
+                        </label>
                       ))}
-                    </select>
+                    </div>
+                    {formData.categories.length === 0 && (
+                      <span className={styles.errorText}>Debe seleccionar al menos una categoría</span>
+                    )}
+                    {errors.categories && <span className={styles.errorText}>{errors.categories}</span>}
+                    <small className={styles.helpText}>
+                      Categoría principal: <strong>{formData.category}</strong>
+                    </small>
                   </div>
 
                   <div className={styles.formGroup}>
@@ -443,17 +496,44 @@ export default function CrearProducto() {
                   </div>
                 </div>
 
+                {/* ✅ OPCIONES DE VISUALIZACIÓN */}
                 <div className={styles.formGroup}>
-                  <label className={styles.checkboxLabel}>
-                    <input
-                      type="checkbox"
-                      name="featured"
-                      checked={formData.featured}
-                      onChange={handleInputChange}
-                      className={styles.checkbox}
-                    />
-                    <span>Marcar como producto destacado</span>
-                  </label>
+                  <label className={styles.label}>Opciones de Visualización</label>
+                  
+                  <div className={styles.checkboxGroup}>
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        name="featured"
+                        checked={formData.featured}
+                        onChange={handleInputChange}
+                        className={styles.checkbox}
+                      />
+                      <span>Marcar como producto destacado</span>
+                    </label>
+                    
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        name="isAdvertisement"
+                        checked={formData.isAdvertisement}
+                        onChange={handleInputChange}
+                        className={styles.checkbox}
+                      />
+                      <span>Agregar como publicidad (carrusel del home)</span>
+                    </label>
+                    
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        name="isMainCarousel"
+                        checked={formData.isMainCarousel}
+                        onChange={handleInputChange}
+                        className={styles.checkbox}
+                      />
+                      <span>Agregar al carrusel del producto principal</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 

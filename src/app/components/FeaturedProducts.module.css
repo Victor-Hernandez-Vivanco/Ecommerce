@@ -34,6 +34,26 @@
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
   margin-bottom: 50px;
+  /* ✅ CORREGIR PARA UN SOLO PRODUCTO */
+  justify-items: center;
+  max-width: 100%;
+}
+
+/* ✅ LIMITAR EL ANCHO CUANDO HAY POCOS PRODUCTOS */
+.productsGrid:has(.productCard:only-child) {
+  max-width: 400px;
+  margin: 0 auto 50px auto;
+}
+
+/* ✅ ALTERNATIVA PARA NAVEGADORES QUE NO SOPORTAN :has() */
+@supports not selector(:has(*)) {
+  .productsGrid {
+    justify-content: center;
+  }
+  
+  .productCard {
+    max-width: 400px;
+  }
 }
 
 .productCard {
@@ -43,6 +63,33 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   position: relative;
+  width: 100%;
+  max-width: 400px; /* ✅ LIMITAR ANCHO MÁXIMO */
+}
+
+/* ✅ RESPONSIVE MEJORADO */
+@media (max-width: 768px) {
+  .productsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    justify-items: center;
+  }
+  
+  .productCard {
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .productsGrid {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+  
+  .productCard {
+    max-width: 100%;
+    margin: 0;
+  }
 }
 
 .productCard:hover {

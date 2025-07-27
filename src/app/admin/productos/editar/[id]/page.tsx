@@ -6,16 +6,47 @@ import Link from 'next/link';
 import Image from 'next/image';
 import styles from '../../productos.module.css';
 
+interface PriceByWeight {
+  weight: number;
+  price: number;
+  stock: number;
+}
+
+interface ProductImage {
+  url: string;
+  originalName: string;
+  size: number;
+  mimeType: string;
+  uploadDate: Date;
+  isPrimary: boolean;
+}
+
 interface ProductForm {
   name: string;
   description: string;
-  price: number;
-  image: string;
+  pricePerKilo: number;
+  pricesByWeight: PriceByWeight[];
+  images: ProductImage[];
   category: string;
-  stock: number;
+  categories: string[];
   featured: boolean;
+  isAdvertisement: boolean;
+  isMainCarousel: boolean;
   discount: number;
 }
+
+// ✅ CATEGORÍAS ACTUALIZADAS
+const categories = [
+  'Frutos Secos',
+  'Frutas Deshidratadas',
+  'Despensa',
+  'Semillas',
+  'Mix',
+  'Cereales',
+  'Snack',
+  'Full',
+  'Box'
+];
 
 export default function EditarProducto() {
   const router = useRouter();
@@ -27,27 +58,34 @@ export default function EditarProducto() {
   const [formData, setFormData] = useState<ProductForm>({
     name: '',
     description: '',
-    price: 0,
-    image: '',
+    pricePerKilo: 0,
+    pricesByWeight: [
+      { weight: 100, price: 0, stock: 0 },
+      { weight: 250, price: 0, stock: 0 },
+      { weight: 500, price: 0, stock: 0 },
+      { weight: 1000, price: 0, stock: 0 }
+    ],
+    images: [],
     category: 'Frutos Secos',
-    stock: 0,
+    categories: ['Frutos Secos'],
     featured: false,
+    isAdvertisement: false,
+    isMainCarousel: false,
     discount: 0
   });
-  const [imagePreview, setImagePreview] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const categories = [
-    'Frutos Secos',
-    'Semillas',
-    'Deshidratados',
-    'Mixes',
-    'Otros'
+  // ✅ PESOS ESTÁNDAR DISPONIBLES
+  const AVAILABLE_WEIGHTS = [
+    { value: 100, label: '100g' },
+    { value: 250, label: '250g' },
+    { value: 500, label: '500g' },
+    { value: 1000, label: '1kg' }
   ];
 
   useEffect(() => {
     loadProduct();
-  }, );
+  }, [productId]);
 
   const loadProduct = async () => {
     try {
@@ -65,14 +103,21 @@ export default function EditarProducto() {
         setFormData({
           name: product.name,
           description: product.description,
-          price: product.price,
-          image: product.image,
+          pricePerKilo: product.pricePerKilo || 0,
+          pricesByWeight: product.pricesByWeight || [
+            { weight: 100, price: 0, stock: 0 },
+            { weight: 250, price: 0, stock: 0 },
+            { weight: 500, price: 0, stock: 0 },
+            { weight: 1000, price: 0, stock: 0 }
+          ],
+          images: product.images || [],
           category: product.category,
-          stock: product.stock,
+          categories: product.categories || [product.category],
           featured: product.featured || false,
+          isAdvertisement: product.isAdvertisement || false,
+          isMainCarousel: product.isMainCarousel || false,
           discount: product.discount || 0
         });
-        setImagePreview(product.image);
       } else {
         alert('Producto no encontrado');
         router.push('/admin/productos');
@@ -86,6 +131,48 @@ export default function EditarProducto() {
     }
   };
 
+  // ✅ MANEJAR SELECCIÓN MÚLTIPLE DE CATEGORÍAS
+  const handleCategoryChange = (category: string, isChecked: boolean) => {
+    if (isChecked) {
+      const newCategories = [...formData.categories, category];
+      setFormData(prev => ({
+        ...prev,
+        categories: newCategories,
+        category: newCategories[0]
+      }));
+    } else {
+      const newCategories = formData.categories.filter(cat => cat !== category);
+      setFormData(prev => ({
+        ...prev,
+        categories: newCategories,
+        category: newCategories[0] || 'Frutos Secos'
+      }));
+    }
+  };
+
+  // ✅ CALCULAR PRECIOS AUTOMÁTICAMENTE
+  const calculatePrices = (pricePerKilo: number) => {
+    const newPrices = formData.pricesByWeight.map(item => ({
+      ...item,
+      price: Math.round((pricePerKilo * item.weight) / 1000)
+    }));
+    setFormData(prev => ({ ...prev, pricesByWeight: newPrices }));
+  };
+
+  // ✅ MANEJAR CAMBIO DE PRECIO POR KILO
+  const handlePricePerKiloChange = (value: number) => {
+    setFormData(prev => ({ ...prev, pricePerKilo: value }));
+    calculatePrices(value);
+  };
+
+  // ✅ MANEJAR CAMBIOS EN STOCK
+  const handleStockChange = (index: number, stock: number) => {
+    const newPrices = [...formData.pricesByWeight];
+    newPrices[index] = { ...newPrices[index], stock };
+    setFormData(prev => ({ ...prev, pricesByWeight: newPrices }));
+  };
+
+  // ✅ MANEJAR CAMBIOS EN INPUTS
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
@@ -93,17 +180,17 @@ export default function EditarProducto() {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else if (type === 'number') {
-      setFormData(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
+      const numValue = parseFloat(value) || 0;
+      
+      if (name === 'pricePerKilo') {
+        handlePricePerKiloChange(numValue);
+      } else {
+        setFormData(prev => ({ ...prev, [name]: numValue }));
+      }
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
-      
-      // Preview de imagen
-      if (name === 'image') {
-        setImagePreview(value);
-      }
     }
     
-    // Limpiar error del campo
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -120,20 +207,21 @@ export default function EditarProducto() {
       newErrors.description = 'La descripción es requerida';
     }
 
-    if (formData.price <= 0) {
-      newErrors.price = 'El precio debe ser mayor a 0';
+    if (formData.pricePerKilo <= 0) {
+      newErrors.pricePerKilo = 'El precio por kilo debe ser mayor a 0';
     }
 
-    if (!formData.image.trim()) {
-      newErrors.image = 'La URL de la imagen es requerida';
-    }
-
-    if (formData.stock < 0) {
-      newErrors.stock = 'El stock no puede ser negativo';
+    if (formData.categories.length === 0) {
+      newErrors.categories = 'Debe seleccionar al menos una categoría';
     }
 
     if (formData.discount < 0 || formData.discount > 100) {
       newErrors.discount = 'El descuento debe estar entre 0 y 100';
+    }
+
+    const totalStock = formData.pricesByWeight.reduce((sum, item) => sum + item.stock, 0);
+    if (totalStock <= 0) {
+      newErrors.stock = 'Debe tener stock en al menos un peso';
     }
 
     setErrors(newErrors);
@@ -157,16 +245,35 @@ export default function EditarProducto() {
         return;
       }
 
+      // Calcular stock total
+      const totalStock = formData.pricesByWeight.reduce((sum, item) => sum + item.stock, 0);
+
+      const productData = {
+        name: formData.name,
+        description: formData.description,
+        pricePerKilo: formData.pricePerKilo,
+        pricesByWeight: formData.pricesByWeight,
+        images: formData.images,
+        category: formData.category,
+        categories: formData.categories,
+        totalStock,
+        featured: formData.featured,
+        isAdvertisement: formData.isAdvertisement,
+        isMainCarousel: formData.isMainCarousel,
+        discount: formData.discount
+      };
+
       const response = await fetch(`/api/products/${productId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${adminToken}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(productData)
       });
 
       if (response.ok) {
+        alert('✅ Producto actualizado exitosamente');
         router.push('/admin/productos');
       } else {
         const errorData = await response.json();
@@ -240,134 +347,171 @@ export default function EditarProducto() {
                   {errors.description && <span className={styles.errorText}>{errors.description}</span>}
                 </div>
 
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label htmlFor="price" className={styles.label}>
-                      Precio (CLP) *
-                    </label>
-                    <input
-                      type="number"
-                      id="price"
-                      name="price"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      className={`${styles.input} ${errors.price ? styles.inputError : ''}`}
-                      placeholder="0"
-                      min="0"
-                      step="1"
-                    />
-                    {errors.price && <span className={styles.errorText}>{errors.price}</span>}
-                  </div>
+                {/* ✅ PRECIO POR KILO CON STEP=10 */}
+                <div className={styles.formGroup}>
+                  <label htmlFor="pricePerKilo" className={styles.label}>
+                    Precio por Kilo (CLP) *
+                  </label>
+                  <input
+                    type="number"
+                    id="pricePerKilo"
+                    name="pricePerKilo"
+                    value={formData.pricePerKilo}
+                    onChange={handleInputChange}
+                    className={`${styles.input} ${errors.pricePerKilo ? styles.inputError : ''}`}
+                    placeholder="0"
+                    min="0"
+                    step="10"
+                  />
+                  {errors.pricePerKilo && <span className={styles.errorText}>{errors.pricePerKilo}</span>}
+                </div>
 
-                  <div className={styles.formGroup}>
-                    <label htmlFor="stock" className={styles.label}>
-                      Stock *
-                    </label>
-                    <input
-                      type="number"
-                      id="stock"
-                      name="stock"
-                      value={formData.stock}
-                      onChange={handleInputChange}
-                      className={`${styles.input} ${errors.stock ? styles.inputError : ''}`}
-                      placeholder="0"
-                      min="0"
-                    />
-                    {errors.stock && <span className={styles.errorText}>{errors.stock}</span>}
+                {/* ✅ PRECIOS CALCULADOS Y STOCK */}
+                <div className={styles.pricesSection}>
+                  <h3 className={styles.sectionTitle}>💰 Precios Calculados y Stock</h3>
+                  <div className={styles.pricesGrid}>
+                    {formData.pricesByWeight.map((item, index) => (
+                      <div key={item.weight} className={styles.priceItem}>
+                        <div className={styles.weightLabel}>
+                          {AVAILABLE_WEIGHTS.find(w => w.value === item.weight)?.label}
+                        </div>
+                        <div className={styles.priceValue}>
+                          ${item.price.toLocaleString()} CLP
+                        </div>
+                        <div className={styles.stockInput}>
+                          <label>Stock:</label>
+                          <input
+                            type="number"
+                            value={item.stock}
+                            onChange={(e) => handleStockChange(index, parseInt(e.target.value) || 0)}
+                            className={styles.input}
+                            min="0"
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label htmlFor="category" className={styles.label}>
-                      Categoría *
-                    </label>
-                    <select
-                      id="category"
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      className={styles.select}
-                    >
-                      {categories.map(category => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
+                {/* ✅ SELECCIÓN MÚLTIPLE DE CATEGORÍAS */}
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Categorías * (Selecciona una o más)</label>
+                  <div className={styles.categoriesGrid}>
+                    {categories.map(category => (
+                      <label key={category} className={styles.categoryItem}>
+                        <input
+                          type="checkbox"
+                          checked={formData.categories.includes(category)}
+                          onChange={(e) => handleCategoryChange(category, e.target.checked)}
+                          className={styles.categoryCheckbox}
+                        />
+                        <span className={styles.categoryLabel}>{category}</span>
+                      </label>
+                    ))}
                   </div>
-
-                  <div className={styles.formGroup}>
-                    <label htmlFor="discount" className={styles.label}>
-                      Descuento (%)
-                    </label>
-                    <input
-                      type="number"
-                      id="discount"
-                      name="discount"
-                      value={formData.discount}
-                      onChange={handleInputChange}
-                      className={`${styles.input} ${errors.discount ? styles.inputError : ''}`}
-                      placeholder="0"
-                      min="0"
-                      max="100"
-                    />
-                    {errors.discount && <span className={styles.errorText}>{errors.discount}</span>}
-                  </div>
+                  {errors.categories && <span className={styles.errorText}>{errors.categories}</span>}
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.checkboxLabel}>
-                    <input
-                      type="checkbox"
-                      name="featured"
-                      checked={formData.featured}
-                      onChange={handleInputChange}
-                      className={styles.checkbox}
-                    />
-                    <span>Marcar como producto destacado</span>
+                  <label htmlFor="discount" className={styles.label}>
+                    Descuento (%)
                   </label>
+                  <input
+                    type="number"
+                    id="discount"
+                    name="discount"
+                    value={formData.discount}
+                    onChange={handleInputChange}
+                    className={`${styles.input} ${errors.discount ? styles.inputError : ''}`}
+                    placeholder="0"
+                    min="0"
+                    max="100"
+                  />
+                  {errors.discount && <span className={styles.errorText}>{errors.discount}</span>}
+                </div>
+
+                {/* ✅ OPCIONES DE VISUALIZACIÓN */}
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Opciones de Visualización</label>
+                  <div className={styles.checkboxGroup}>
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        name="featured"
+                        checked={formData.featured}
+                        onChange={handleInputChange}
+                        className={styles.checkbox}
+                      />
+                      <span>Marcar como producto destacado</span>
+                    </label>
+                    
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        name="isAdvertisement"
+                        checked={formData.isAdvertisement}
+                        onChange={handleInputChange}
+                        className={styles.checkbox}
+                      />
+                      <span>Agregar como publicidad (carrusel del inicio)</span>
+                    </label>
+                    
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        name="isMainCarousel"
+                        checked={formData.isMainCarousel}
+                        onChange={handleInputChange}
+                        className={styles.checkbox}
+                      />
+                      <span>Agregar al carrusel del producto principal</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
-              {/* Columna derecha - Imagen */}
+              {/* Columna derecha - Imágenes */}
               <div className={styles.formColumn}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="image" className={styles.label}>
-                    URL de la Imagen *
-                  </label>
-                  <input
-                    type="url"
-                    id="image"
-                    name="image"
-                    value={formData.image}
-                    onChange={handleInputChange}
-                    className={`${styles.input} ${errors.image ? styles.inputError : ''}`}
-                    placeholder="https://ejemplo.com/imagen.jpg"
-                  />
-                  {errors.image && <span className={styles.errorText}>{errors.image}</span>}
-                </div>
-
-                {/* Preview de imagen */}
-                <div className={styles.imagePreview}>
-                  <label className={styles.label}>Vista Previa</label>
-                  <div className={styles.previewContainer}>
-                    {imagePreview ? (
-                      <Image
-                        src={imagePreview}
-                        alt="Vista previa"
-                        width={300}
-                        height={200}
-                        style={{ objectFit: 'cover' }}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/placeholder-product.jpg';
-                        }}
-                      />
-                    ) : (
-                      <div className={styles.placeholderImage}>
+                  <label className={styles.label}>Imágenes del Producto</label>
+                  <div className={styles.imagesSection}>
+                    {formData.images.length > 0 && (
+                      <div className={styles.imagesList}>
+                        {formData.images.map((image, index) => (
+                          <div key={index} className={styles.imageItem}>
+                            <div className={styles.imagePreview}>
+                              <Image
+                                src={image.url}
+                                alt={`Imagen ${index + 1}`}
+                                width={150}
+                                height={150}
+                                style={{ objectFit: 'cover' }}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = '/placeholder-product.jpg';
+                                }}
+                              />
+                              {image.isPrimary && (
+                                <div className={styles.primaryBadge}>Principal</div>
+                              )}
+                            </div>
+                            <div className={styles.imageInfo}>
+                              <p className={styles.imageName}>{image.originalName}</p>
+                              <p className={styles.imageSize}>
+                                {(image.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {formData.images.length === 0 && (
+                      <div className={styles.noImages}>
                         <span>📷</span>
-                        <p>Vista previa de la imagen</p>
+                        <p>No hay imágenes cargadas</p>
+                        <p className={styles.note}>Las imágenes se gestionan desde la creación del producto</p>
                       </div>
                     )}
                   </div>
