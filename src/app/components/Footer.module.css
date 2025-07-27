@@ -202,3 +202,33 @@
     gap: 12px; /* Reducido de 15px */
   }
 }
+
+.adminButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white !important;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 15px;
+}
+
+.adminButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  color: white !important;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .adminButton {
+    margin-top: 10px;
+    font-size: 0.7rem;
+    padding: 6px 10px;
+  }
+}

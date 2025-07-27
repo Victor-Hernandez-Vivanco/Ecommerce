@@ -1,8 +1,16 @@
-'use client'
+'use client';
 
-import styles from './Footer.module.css'
+import Link from 'next/link';
+import { useAuth } from '../context/AuthContext';
+import styles from './Footer.module.css';
 
 export default function Footer() {
+  const { user } = useAuth();
+
+  // ✅ Debug logs (remover después)
+  console.log('Usuario en Footer:', user);
+  console.log('Es admin?:', user?.role === 'admin');
+
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
@@ -34,11 +42,11 @@ export default function Footer() {
           <div className={styles.footerSection}>
             <h4 className={styles.sectionTitle}>Enlaces Rápidos</h4>
             <ul className={styles.linkList}>
-              <li><a href="#" className={styles.footerLink}>Inicio</a></li>
-              <li><a href="#" className={styles.footerLink}>Productos</a></li>
-              <li><a href="#" className={styles.footerLink}>Sobre Nosotros</a></li>
-              <li><a href="#" className={styles.footerLink}>Contacto</a></li>
-              <li><a href="#" className={styles.footerLink}>Blog</a></li>
+              <li><Link href="/" className={styles.footerLink}>Inicio</Link></li>
+              <li><Link href="/productos" className={styles.footerLink}>Productos</Link></li>
+              <li><Link href="/about" className={styles.footerLink}>Sobre Nosotros</Link></li>
+              <li><Link href="/contact" className={styles.footerLink}>Contacto</Link></li>
+              <li><Link href="/blog" className={styles.footerLink}>Blog</Link></li>
             </ul>
           </div>
 
@@ -46,11 +54,11 @@ export default function Footer() {
           <div className={styles.footerSection}>
             <h4 className={styles.sectionTitle}>Categorías</h4>
             <ul className={styles.linkList}>
-              <li><a href="#" className={styles.footerLink}>Almendras</a></li>
-              <li><a href="#" className={styles.footerLink}>Nueces</a></li>
-              <li><a href="#" className={styles.footerLink}>Pistachos</a></li>
-              <li><a href="#" className={styles.footerLink}>Avellanas</a></li>
-              <li><a href="#" className={styles.footerLink}>Frutos Deshidratados</a></li>
+              <li><Link href="/productos?categoria=almendras" className={styles.footerLink}>Almendras</Link></li>
+              <li><Link href="/productos?categoria=nueces" className={styles.footerLink}>Nueces</Link></li>
+              <li><Link href="/productos?categoria=pistachos" className={styles.footerLink}>Pistachos</Link></li>
+              <li><Link href="/productos?categoria=avellanas" className={styles.footerLink}>Avellanas</Link></li>
+              <li><Link href="/productos?categoria=deshidratados" className={styles.footerLink}>Frutos Deshidratados</Link></li>
             </ul>
           </div>
 
@@ -90,9 +98,14 @@ export default function Footer() {
             <a href="#" className={styles.legalLink}>Política de Privacidad</a>
             <a href="#" className={styles.legalLink}>Términos y Condiciones</a>
             <a href="#" className={styles.legalLink}>Política de Cookies</a>
+            
+            {/* ✅ Botón de admin - SIEMPRE VISIBLE */}
+            <Link href="/admin/login" className={styles.adminButton}>
+              ⚙️
+            </Link>
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }

@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:backend": "cd backend && node server.js",
-    "dev:full": "concurrently \"npm run dev\" \"npm run dev:backend\" --names \"FRONTEND,BACKEND\" --prefix-colors \"cyan,yellow\"",
+   
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,21 +12,21 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.0.0",
     "bcryptjs": "^3.0.2",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
-    "express": "^5.1.0",
+  
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.16.4",
+    "mongoose": "^8.16.5",
     "next": "15.4.4",
-    "nodemon": "^3.1.10",
+ 
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "concurrently": "^8.2.2",
+  
     "eslint": "^8",
     "eslint-config-next": "15.4.4",
     "typescript": "^5"

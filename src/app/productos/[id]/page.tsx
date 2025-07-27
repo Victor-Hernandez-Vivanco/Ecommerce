@@ -1,26 +1,59 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import styles from './producto.module.css'
 
+// ✅ INTERFAZ ACTUALIZADA PARA EL NUEVO MODELO
 interface Product {
   _id: string
   name: string
   description: string
-  price: number
-  image: string
   category: string
-  stock: number
+  basePricePer100g?: number
+  pricesByWeight?: Array<{
+    weight: number
+    price: number
+    stock: number
+  }>
+  totalStock?: number
+  image: string
+  featured: boolean
+  discount: number
+  createdAt: string
 }
 
 interface WeightOption {
-  weight: string
-  multiplier: number
+  weight: number
+  price: number
+  stock: number
   label: string
 }
+
+// ✅ PRODUCTOS DE EJEMPLO MOVIDOS FUERA DEL COMPONENTE (constante global)
+const SAMPLE_PRODUCTS: Product[] = [
+  {
+    _id: '1',
+    name: 'Coco rallado natural',
+    description: 'Coco rallado 100% natural, perfecto para repostería y preparaciones dulces.',
+    category: 'Deshidratados',
+    basePricePer100g: 7890,
+    pricesByWeight: [
+      { weight: 100, price: 3945, stock: 15 },
+      { weight: 250, price: 7890, stock: 12 },
+      { weight: 500, price: 14200, stock: 8 },
+      { weight: 1000, price: 25248, stock: 5 }
+    ],
+    totalStock: 40,
+    image: '/images/coco-rallado.jpg',
+    featured: false,
+    discount: 0,
+    createdAt: new Date().toISOString()
+  }
+]
 
 export default function ProductoPage() {
   const params = useParams()
@@ -33,136 +66,82 @@ export default function ProductoPage() {
   const [showCartOptions, setShowCartOptions] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
 
-  // Opciones de peso disponibles
-  const weightOptions: WeightOption[] = [
-    { weight: '100g', multiplier: 0.5, label: '100 gramos' },
-    { weight: '250g', multiplier: 1, label: '250 gramos' },
-    { weight: '500g', multiplier: 1.8, label: '500 gramos' },
-    { weight: '1kg', multiplier: 3.2, label: '1 kilogramo' }
-  ]
-
-  // Productos de ejemplo (mismo array que en la página principal)
-  const sampleProducts: Product[] = [
-    {
-      _id: '1',
-      name: 'Coco rallado natural',
-      description: 'Coco rallado 100% natural, perfecto para repostería y preparaciones dulces. Rico en fibra y grasas saludables.',
-      price: 7890,
-      image: '/images/coco-rallado.jpg',
-      category: 'frutos-deshidratados',
-      stock: 15
-    },
-    {
-      _id: '2',
-      name: 'Mix cosavi',
-      description: 'Mezcla especial de frutos secos y semillas seleccionadas. Ideal para snacks saludables y energéticos.',
-      price: 10990,
-      image: '/images/mix-cosavi.jpg',
-      category: 'frutos-secos',
-      stock: 8
-    },
-    {
-      _id: '3',
-      name: 'Mantequilla maní Riwün 250g',
-      description: 'Mantequilla de maní natural sin aditivos artificiales. Cremosa textura y sabor intenso a maní tostado.',
-      price: 3900,
-      image: '/images/mantequilla-mani.jpg',
-      category: 'riwun-al-frasco',
-      stock: 12
-    },
-    {
-      _id: '4',
-      name: 'Maní tostado',
-      description: 'Maní tostado con sal marina, ideal para snacks. Crujiente y lleno de proteínas vegetales.',
-      price: 5490,
-      image: '/images/mani-tostado.jpg',
-      category: 'frutos-secos',
-      stock: 20
-    },
-    {
-      _id: '5',
-      name: 'Nuez partida clara',
-      description: 'Nueces partidas de primera calidad, ricas en omega-3 y antioxidantes naturales.',
-      price: 11990,
-      image: '/images/nuez-partida.jpg',
-      category: 'frutos-secos',
-      stock: 6
-    },
-    {
-      _id: '6',
-      name: 'Coco chips natural',
-      description: 'Chips de coco natural deshidratado, sin azúcares añadidos. Perfecto para postres y smoothies.',
-      price: 11990,
-      image: '/images/coco-chips.jpg',
-      category: 'frutos-deshidratados',
-      stock: 10
-    },
-    {
-      _id: '7',
-      name: 'Mix frutos morenos',
-      description: 'Mezcla premium de frutos secos morenos, seleccionados por su calidad y sabor excepcional.',
-      price: 8990,
-      image: '/images/mix-morenos.jpg',
-      category: 'frutos-secos',
-      stock: 4
-    },
-    {
-      _id: '8',
-      name: 'Mix frutos rubios',
-      description: 'Selección especial de frutos secos rubios, perfecta combinación de sabores y texturas.',
-      price: 10990,
-      image: '/images/mix-rubios.jpg',
-      category: 'frutos-secos',
-      stock: 7
+  // ✅ FUNCIONES HELPER PARA OBTENER PRECIO Y STOCK
+  const getProductStock = (product: Product) => {
+    if (product.totalStock !== undefined) {
+      return product.totalStock
     }
-  ]
-
-  // Obtener productos recomendados (excluyendo el producto actual)
-  const getRecommendedProducts = () => {
-    return sampleProducts.filter(p => p._id !== params.id).slice(0, 8)
+    if (product.pricesByWeight && product.pricesByWeight.length > 0) {
+      return product.pricesByWeight.reduce((total, p) => total + (p.stock || 0), 0)
+    }
+    return 0
   }
+
+  // ✅ OBTENER OPCIONES DE PESO DESDE EL PRODUCTO
+  const getWeightOptions = (product: Product): WeightOption[] => {
+    if (product.pricesByWeight && product.pricesByWeight.length > 0) {
+      return product.pricesByWeight.map(pw => ({
+        weight: pw.weight,
+        price: pw.price,
+        stock: pw.stock,
+        label: `${pw.weight}g`
+      }))
+    }
+    return []
+  }
+
+  // ✅ FUNCIÓN MEMOIZADA PARA OBTENER PRODUCTOS RECOMENDADOS (sin dependencias problemáticas)
+  const getRecommendedProducts = useCallback(() => {
+    return SAMPLE_PRODUCTS.filter(p => p._id !== params.id).slice(0, 8)
+  }, [params.id]) // ✅ CORREGIDO: Solo params.id como dependencia
 
   const recommendedProducts = getRecommendedProducts()
   const totalSlides = Math.ceil(recommendedProducts.length / 5)
 
-  useEffect(() => {
-    const loadProduct = async () => {
-      setLoading(true)
-      try {
-        // Intentar cargar desde API
-        const response = await fetch(`http://localhost:5000/api/products/${params.id}`)
-        if (response.ok) {
-          const data = await response.json()
-          setProduct(data)
-        } else {
-          // Si falla la API, buscar en productos de ejemplo
-          const foundProduct = sampleProducts.find(p => p._id === params.id)
-          setProduct(foundProduct || null)
-        }
-      } catch (error) {
-        console.log('API no disponible, buscando en productos de ejemplo')
-        const foundProduct = sampleProducts.find(p => p._id === params.id)
+  // ✅ FUNCIÓN MEMOIZADA PARA CARGAR PRODUCTO (sin dependencias problemáticas)
+  const loadProduct = useCallback(async () => {
+    setLoading(true)
+    try {
+      // Intentar cargar desde API
+      const response = await fetch(`/api/products/${params.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setProduct(data)
+      } else {
+        // Si falla la API, buscar en productos de ejemplo
+        const foundProduct = SAMPLE_PRODUCTS.find(p => p._id === params.id)
         setProduct(foundProduct || null)
-      } finally {
-        setLoading(false)
       }
+    } catch {
+      console.log('API no disponible, buscando en productos de ejemplo')
+      const foundProduct = SAMPLE_PRODUCTS.find(p => p._id === params.id)
+      setProduct(foundProduct || null)
+    } finally {
+      setLoading(false)
     }
+  }, [params.id]) // ✅ CORREGIDO: Solo params.id como dependencia
 
+  useEffect(() => {
     if (params.id) {
       loadProduct()
     }
-  }, [params.id])
+  }, [params.id, loadProduct])
 
-  // Establecer peso por defecto cuando se carga el producto
+  // ✅ ESTABLECER PESO POR DEFECTO CUANDO SE CARGA EL PRODUCTO
   useEffect(() => {
     if (product && !selectedWeight) {
-      setSelectedWeight(weightOptions[1]) // 250g por defecto
+      const weightOptions = getWeightOptions(product)
+      if (weightOptions.length > 0) {
+        // Seleccionar 250g por defecto, o la primera opción disponible
+        const defaultWeight = weightOptions.find(w => w.weight === 250) || weightOptions[0]
+        setSelectedWeight(defaultWeight)
+      }
     }
-  }, [product])
+  }, [product, selectedWeight])
 
   const getCurrentPrice = () => {
-    if (!product || !selectedWeight) return 0
-    return Math.round(product.price * selectedWeight.multiplier)
+    if (!selectedWeight) return 0
+    return selectedWeight.price
   }
 
   const addToCart = () => {
@@ -191,10 +170,6 @@ export default function ProductoPage() {
 
   const goToCart = () => {
     router.push('/carrito')
-  }
-
-  const hideCartOptions = () => {
-    setShowCartOptions(false)
   }
 
   const goBack = () => {
@@ -250,6 +225,9 @@ export default function ProductoPage() {
     )
   }
 
+  const weightOptions = getWeightOptions(product)
+  const totalStock = getProductStock(product)
+
   return (
     <div className={styles.pageContainer}>
       <Navbar />
@@ -266,11 +244,15 @@ export default function ProductoPage() {
           {/* Producto */}
           <div className={styles.productContainer}>
             <div className={styles.productImage}>
-              <img 
-                src={product.image || '/placeholder-product.jpg'} 
+              <Image
+                src={product.image || '/placeholder-product.jpg'}
                 alt={product.name}
+                width={400}
+                height={300}
+                style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                 onError={(e) => {
-                  e.currentTarget.src = '/placeholder-product.jpg'
+                  const target = e.target as HTMLImageElement
+                  target.src = '/placeholder-product.jpg'
                 }}
               />
             </div>
@@ -281,7 +263,7 @@ export default function ProductoPage() {
               <div className={styles.productPrice}>
                 ${getCurrentPrice().toLocaleString('es-CL')}
                 {selectedWeight && (
-                  <span className={styles.weightInfo}> / {selectedWeight.weight}</span>
+                  <span className={styles.weightInfo}> / {selectedWeight.label}</span>
                 )}
               </div>
               
@@ -290,10 +272,10 @@ export default function ProductoPage() {
               </div>
               
               <div className={styles.stockInfo}>
-                {product.stock > 0 ? (
+                {totalStock > 0 ? (
                   <span className={styles.inStock}>
                     <i className="fas fa-check-circle"></i>
-                    {product.stock} unidades disponibles
+                    {selectedWeight ? selectedWeight.stock : totalStock} unidades disponibles
                   </span>
                 ) : (
                   <span className={styles.outOfStock}>
@@ -305,27 +287,29 @@ export default function ProductoPage() {
               
               {/* Sección de compra */}
               <div className={styles.purchaseSection}>
-                {/* Selector de peso */}
-                <div className={styles.weightSelector}>
-                  <label className={styles.selectorLabel}>Seleccione la Cantidad:</label>
-                  <div className={styles.weightOptions}>
-                    {weightOptions.map((option) => (
-                      <button
-                        key={option.weight}
-                        onClick={() => setSelectedWeight(option)}
-                        className={`${styles.weightOption} ${
-                          selectedWeight?.weight === option.weight ? styles.selected : ''
-                        }`}
-                        disabled={product.stock === 0}
-                      >
-                        <span className={styles.weightLabel}>{option.weight}</span>
-                        <span className={styles.weightPrice}>
-                          ${Math.round(product.price * option.multiplier).toLocaleString('es-CL')}
-                        </span>
-                      </button>
-                    ))}
+                {/* ✅ SELECTOR DE PESO CON DATOS REALES */}
+                {weightOptions.length > 0 && (
+                  <div className={styles.weightSelector}>
+                    <label className={styles.selectorLabel}>Seleccione la Cantidad:</label>
+                    <div className={styles.weightOptions}>
+                      {weightOptions.map((option) => (
+                        <button
+                          key={option.weight}
+                          onClick={() => setSelectedWeight(option)}
+                          className={`${styles.weightOption} ${
+                            selectedWeight?.weight === option.weight ? styles.selected : ''
+                          }`}
+                          disabled={option.stock === 0}
+                        >
+                          <span className={styles.weightLabel}>{option.label}</span>
+                          <span className={styles.weightPrice}>
+                            ${option.price.toLocaleString('es-CL')}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Selector de cantidad */}
                 <div className={styles.quantitySelector}>
@@ -334,15 +318,15 @@ export default function ProductoPage() {
                     <button 
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       className={styles.quantityBtn}
-                      disabled={product.stock === 0}
+                      disabled={!selectedWeight || selectedWeight.stock === 0}
                     >
                       -
                     </button>
                     <span className={styles.quantity}>{quantity}</span>
                     <button 
-                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                      onClick={() => setQuantity(Math.min(selectedWeight?.stock || 0, quantity + 1))}
                       className={styles.quantityBtn}
-                      disabled={product.stock === 0}
+                      disabled={!selectedWeight || selectedWeight.stock === 0}
                     >
                       +
                     </button>
@@ -353,11 +337,11 @@ export default function ProductoPage() {
                 <button 
                   onClick={addToCart}
                   className={styles.addToCartBtn}
-                  disabled={product.stock === 0 || !selectedWeight}
+                  disabled={!selectedWeight || selectedWeight.stock === 0}
                 >
                   <i className="fas fa-cart-plus"></i>
-                  {product.stock === 0 ? 'Agotado' : 
-                   !selectedWeight ? 'Selecciona un peso' : 
+                  {!selectedWeight ? 'Selecciona un peso' :
+                   selectedWeight.stock === 0 ? 'Agotado' : 
                    'Agregar al carrito'}
                 </button>
                 
@@ -369,7 +353,7 @@ export default function ProductoPage() {
                   </div>
                 )}
                 
-                {/* Opciones del carrito - SIN botón cerrar */}
+                {/* Opciones del carrito */}
                 {showCartOptions && (
                   <div className={styles.cartOptionsContainer}>
                     <div className={styles.cartOptions}>
@@ -400,26 +384,16 @@ export default function ProductoPage() {
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Carrusel de productos recomendados - FUERA del container del producto */}
-        <section className={styles.recommendedSection}>
-          <div className={styles.container}>
-            <h2 className={styles.recommendedTitle}>Productos Recomendados</h2>
-            
-            <div className={styles.carouselContainer}>
-              <div className={styles.carousel}>
-                <button 
-                  onClick={prevSlide}
-                  className={`${styles.carouselBtn} ${styles.prevBtn}`}
-                  disabled={totalSlides <= 1}
-                >
-                  <i className="fas fa-chevron-left"></i>
-                </button>
-                
-                <div className={styles.carouselTrack}>
+
+          {/* Productos recomendados */}
+          {recommendedProducts.length > 0 && (
+            <section className={styles.recommendedSection}>
+              <h2 className={styles.recommendedTitle}>Productos Recomendados</h2>
+              
+              <div className={styles.carouselContainer}>
+                <div className={styles.carousel}>
                   <div 
-                    className={styles.carouselSlides}
+                    className={styles.carouselTrack}
                     style={{
                       transform: `translateX(-${currentSlide * 100}%)`,
                       width: `${totalSlides * 100}%`
@@ -436,11 +410,15 @@ export default function ProductoPage() {
                               onClick={() => navigateToProduct(product._id)}
                             >
                               <div className={styles.productImageContainer}>
-                                <img 
-                                  src={product.image || '/placeholder-product.jpg'} 
+                                <Image
+                                  src={product.image || '/placeholder-product.jpg'}
                                   alt={product.name}
+                                  width={150}
+                                  height={120}
+                                  style={{ objectFit: 'cover' }}
                                   onError={(e) => {
-                                    e.currentTarget.src = '/placeholder-product.jpg'
+                                    const target = e.target as HTMLImageElement
+                                    target.src = '/placeholder-product.jpg'
                                   }}
                                 />
                                 <div className={styles.hoverOverlay}>
@@ -448,60 +426,50 @@ export default function ProductoPage() {
                                   <span>Ver Producto</span>
                                 </div>
                               </div>
-                              
                               <div className={styles.productDetails}>
-                                <h3 className={styles.productTitle}>{product.name}</h3>
-                                <div className={styles.productPrice}>
-                                  ${product.price.toLocaleString('es-CL')}
-                                </div>
-                                <div className={styles.productStock}>
-                                  {product.stock > 0 ? (
-                                    <span className={styles.inStock}>
-                                      <i className="fas fa-check-circle"></i>
-                                      En stock
-                                    </span>
-                                  ) : (
-                                    <span className={styles.outOfStock}>
-                                      <i className="fas fa-times-circle"></i>
-                                      Agotado
-                                    </span>
-                                  )}
-                                </div>
+                                <h4>{product.name}</h4>
+                                <p className={styles.productPrice}>
+                                  ${(product.basePricePer100g || 0).toLocaleString('es-CL')}
+                                </p>
                               </div>
                             </div>
-                          ))
-                        }
+                          ))}
                       </div>
                     ))}
                   </div>
                 </div>
                 
-                <button 
-                  onClick={nextSlide}
-                  className={`${styles.carouselBtn} ${styles.nextBtn}`}
-                  disabled={totalSlides <= 1}
-                >
-                  <i className="fas fa-chevron-right"></i>
-                </button>
+                {totalSlides > 1 && (
+                  <>
+                    <button 
+                      className={`${styles.carouselBtn} ${styles.prevBtn}`}
+                      onClick={prevSlide}
+                    >
+                      <i className="fas fa-chevron-left"></i>
+                    </button>
+                    <button 
+                      className={`${styles.carouselBtn} ${styles.nextBtn}`}
+                      onClick={nextSlide}
+                    >
+                      <i className="fas fa-chevron-right"></i>
+                    </button>
+                    
+                    <div className={styles.carouselIndicators}>
+                      {Array.from({ length: totalSlides }).map((_, index) => (
+                        <button
+                          key={index}
+                          className={`${styles.indicator} ${index === currentSlide ? styles.active : ''}`}
+                          onClick={() => goToSlide(index)}
+                        >
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
-              
-              {/* Indicadores de slide */}
-              {totalSlides > 1 && (
-                <div className={styles.carouselIndicators}>
-                  {Array.from({ length: totalSlides }).map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => goToSlide(index)}
-                      className={`${styles.indicator} ${
-                        currentSlide === index ? styles.active : ''
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
+            </section>
+          )}
+        </div>
       </main>
       
       <Footer />
