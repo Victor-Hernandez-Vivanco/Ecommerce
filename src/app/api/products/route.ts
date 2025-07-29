@@ -67,7 +67,10 @@ export async function POST(request: NextRequest) {
       pricesByWeight,
       images,
       category,
+      categories,        // ✅ AGREGAR CAMPO FALTANTE
       featured,
+      isAdvertisement,   // ✅ AGREGAR CAMPO FALTANTE
+      isMainCarousel,    // ✅ AGREGAR CAMPO FALTANTE
       discount,
     } = body;
 
@@ -75,6 +78,14 @@ export async function POST(request: NextRequest) {
     if (!name || !description || !pricePerKilo || !category) {
       return NextResponse.json(
         { message: "Todos los campos requeridos deben ser completados" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ VALIDAR CATEGORÍAS MÚLTIPLES
+    if (categories && categories.length === 0) {
+      return NextResponse.json(
+        { message: "Debe seleccionar al menos una categoría" },
         { status: 400 }
       );
     }
@@ -102,7 +113,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ✅ CREAR PRODUCTO CON NUEVO MODELO
+    // ✅ CREAR PRODUCTO CON TODOS LOS CAMPOS NUEVOS
     const newProduct = new Product({
       name,
       description,
@@ -110,7 +121,10 @@ export async function POST(request: NextRequest) {
       pricesByWeight,
       images,
       category,
+      categories: categories || [category],      // ✅ USAR categories O FALLBACK
       featured: featured || false,
+      isAdvertisement: isAdvertisement || false, // ✅ NUEVO CAMPO
+      isMainCarousel: isMainCarousel || false,   // ✅ NUEVO CAMPO
       discount: discount || 0,
     });
 
