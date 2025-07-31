@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useCart } from '../context/CartContext'
 import styles from './FeaturedProducts.module.css'
 
 interface Product {
@@ -23,13 +24,92 @@ interface Product {
   discount: number
 }
 
+interface WeightOption {
+  weight: number
+  price: number
+  stock: number
+  label: string
+}
+
 export default function FeaturedProducts() {
   const router = useRouter()
+  const { addToCart } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  
+  // ✅ ESTADOS PARA MODAL (IGUAL QUE EN PRODUCTOS PAGE)
+  const [showQuickView, setShowQuickView] = useState(false)
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
+  const [selectedWeight, setSelectedWeight] = useState<WeightOption | null>(null)
+  const [quantity, setQuantity] = useState(1)
 
-  // ✅ FUNCIÓN HELPER PARA OBTENER PRECIO
+  // ✅ FUNCIÓN PARA OBTENER OPCIONES DE PESO (SOLO GRAMAJE)
+  const getWeightOptions = (product: Product): WeightOption[] => {
+    if (product.pricesByWeight && product.pricesByWeight.length > 0) {
+      return product.pricesByWeight
+        .filter(option => option.stock > 0)
+        .map(option => ({
+          ...option,
+          label: `${option.weight}g`  // ✅ SOLO GRAMAJE
+        }))
+    }
+    return []
+  }
+
+  // ✅ FUNCIÓN PARA OBTENER PRECIO ACTUAL (IGUAL QUE EN PRODUCTOS PAGE)
+  const getCurrentPrice = () => {
+    if (!selectedWeight) return 0
+    return selectedWeight.price
+  }
+
+  // ✅ FUNCIÓN PARA ABRIR VISTA RÁPIDA (IGUAL QUE EN PRODUCTOS PAGE)
+  const openQuickView = (product: Product) => {
+    setQuickViewProduct(product)
+    const weightOptions = getWeightOptions(product)
+    if (weightOptions.length > 0) {
+      setSelectedWeight(weightOptions[0])
+    }
+    setQuantity(1)
+    setShowQuickView(true)
+  }
+
+  // ✅ FUNCIÓN PARA CERRAR VISTA RÁPIDA (IGUAL QUE EN PRODUCTOS PAGE)
+  const closeQuickView = () => {
+    setShowQuickView(false)
+    setQuickViewProduct(null)
+    setSelectedWeight(null)
+    setQuantity(1)
+  }
+
+  // ✅ FUNCIÓN PARA AGREGAR AL CARRITO (IGUAL QUE EN PRODUCTOS PAGE)
+  const addToCartFromModal = (product: Product, weightOption?: WeightOption, qty: number = 1) => {
+    if (!weightOption) {
+      alert('Por favor selecciona un peso')
+      return
+    }
+
+    if (qty > weightOption.stock) {
+      alert(`Solo hay ${weightOption.stock} unidades disponibles`)
+      return
+    }
+
+    const cartItem = {
+      productId: product._id,
+      name: product.name,
+      price: weightOption.price,
+      weight: weightOption.weight,
+      quantity: qty,
+      image: product.image,
+      stock: weightOption.stock
+    }
+
+    addToCart(cartItem)
+    alert(`${qty} x ${product.name} (${weightOption.weight}g) agregado al carrito`)
+    closeQuickView()
+  }
+
+  // ... existing helper functions ...
   const getProductPrice = (product: Product) => {
     if (product.basePricePer100g) {
       return product.basePricePer100g;
@@ -40,7 +120,6 @@ export default function FeaturedProducts() {
     return 0;
   };
 
-  // ✅ FUNCIÓN HELPER PARA OBTENER STOCK
   const getProductStock = (product: Product) => {
     if (product.totalStock !== undefined) {
       return product.totalStock;
@@ -51,13 +130,17 @@ export default function FeaturedProducts() {
     return 0;
   };
 
+  const goToProduct = (productId: string) => {
+    router.push(`/productos/${productId}`)
+  }
+
+  // ... existing useEffect ...
   useEffect(() => {
     const loadProducts = async () => {
       try {
         setLoading(true)
         setError('')
         
-        // ✅ USAR API REAL DE PRODUCTOS DESTACADOS
         const response = await fetch('/api/products/featured')
         
         if (!response.ok) {
@@ -67,14 +150,13 @@ export default function FeaturedProducts() {
         const data = await response.json()
         console.log('✅ Productos destacados cargados:', data.length)
         
-        // ✅ Si no hay productos destacados, mostrar los primeros 6 productos
         if (data.length === 0) {
           console.log('⚠️ No hay productos destacados, cargando productos generales...')
           const allProductsResponse = await fetch('/api/products')
           
           if (allProductsResponse.ok) {
             const allProducts = await allProductsResponse.json()
-            setProducts(allProducts.slice(0, 6)) // Mostrar solo los primeros 6
+            setProducts(allProducts.slice(0, 6))
           } else {
             setError('No se pudieron cargar los productos')
           }
@@ -93,64 +175,7 @@ export default function FeaturedProducts() {
     loadProducts()
   }, [])
 
-  const goToProduct = (productId: string) => {
-    router.push(`/productos/${productId}`)
-  }
-
-  // ✅ ESTADO DE CARGA
-  if (loading) {
-    return (
-      <section className={styles.featuredSection}>
-        <div className={styles.container}>
-          <h2 className={styles.title}>Productos Destacados</h2>
-          <div className={styles.loadingGrid}>
-            {[...Array(6)].map((_, index) => (
-              <div key={index} className={styles.loadingCard}>
-                <div className={styles.loadingSkeleton}></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  // ✅ ESTADO DE ERROR
-  if (error) {
-    return (
-      <section className={styles.featuredSection}>
-        <div className={styles.container}>
-          <h2 className={styles.title}>Productos Destacados</h2>
-          <div className={styles.errorContainer}>
-            <p className={styles.errorMessage}>❌ {error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className={styles.retryBtn}
-            >
-              🔄 Reintentar
-            </button>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  // ✅ ESTADO SIN PRODUCTOS
-  if (products.length === 0) {
-    return (
-      <section className={styles.featuredSection}>
-        <div className={styles.container}>
-          <h2 className={styles.title}>Productos Destacados</h2>
-          <div className={styles.noProductsContainer}>
-            <p className={styles.noProductsMessage}>📦 No hay productos destacados disponibles</p>
-            <Link href="/productos" className={styles.viewAllBtn}>
-              Ver Todos los Productos
-            </Link>
-          </div>
-        </div>
-      </section>
-    )
-  }
+  // ... existing loading and error states ...
 
   return (
     <section className={styles.featuredSection}>
@@ -162,7 +187,6 @@ export default function FeaturedProducts() {
           {products.map((product) => (
             <div key={product._id} className={styles.productCard}>
               <div className={styles.imageContainer}>
-                {/* ✅ REEMPLAZAR <img> POR <Image> DE NEXT.JS */}
                 <Image 
                   src={product.image || '/placeholder-product.jpg'} 
                   alt={product.name}
@@ -179,20 +203,17 @@ export default function FeaturedProducts() {
                     height: '100%'
                   }}
                   onError={(e) => {
-                    // ✅ FALLBACK PARA ERRORES
                     const target = e.target as HTMLImageElement
                     target.src ='https://via.placeholder.com/300x200/8B4513/FFFFFF?text=Producto';
                   }}
                 />
                 
-                {/* ✅ MOSTRAR DESCUENTO SI EXISTE */}
                 {product.discount && product.discount > 0 && (
                   <div className={styles.discountBadge}>
                     -{product.discount}%
                   </div>
                 )}
                 
-                {/* ✅ MOSTRAR STOCK BAJO */}
                 {getProductStock(product) <= 5 && getProductStock(product) > 0 && (
                   <div className={styles.lowStockBadge}>
                     ¡Últimas {getProductStock(product)}!
@@ -202,7 +223,7 @@ export default function FeaturedProducts() {
                 <div className={styles.overlay}>
                   <button 
                     className={styles.quickViewBtn}
-                    onClick={() => goToProduct(product._id)}
+                    onClick={() => openQuickView(product)}
                   >
                     <i className="fas fa-eye"></i>
                     Vista Rápida
@@ -215,7 +236,6 @@ export default function FeaturedProducts() {
                 <p className={styles.productDescription}>{product.description}</p>
                 <div className={styles.productFooter}>
                   <div className={styles.priceContainer}>
-                    {/* ✅ CORREGIDO: Usar función helper para precio */}
                     {product.discount && product.discount > 0 ? (
                       <>
                         <span className={styles.originalPrice}>
@@ -227,7 +247,7 @@ export default function FeaturedProducts() {
                       </>
                     ) : (
                       <span className={styles.price}>
-                        ${getProductPrice(product).toLocaleString()} CLP/100g
+                        ${getProductPrice(product).toLocaleString()} /100g
                       </span>
                     )}
                   </div>
@@ -237,8 +257,8 @@ export default function FeaturedProducts() {
                     onClick={() => goToProduct(product._id)}
                     disabled={getProductStock(product) === 0}
                   >
-                    <i className="fas fa-shopping-cart"></i>
-                    {getProductStock(product) === 0 ? 'Agotado' : 'Agregar'}
+                    
+                    {getProductStock(product) === 0 ? 'Agotado' : 'Ver Producto'}
                   </button>
                 </div>
               </div>
@@ -253,6 +273,95 @@ export default function FeaturedProducts() {
           </Link>
         </div>
       </div>
+      
+      {/* ✅ MODAL DE VISTA RÁPIDA - FORMATO EXACTO DE PRODUCTOS PAGE */}
+      {showQuickView && quickViewProduct && (
+        <div className={styles.modalOverlay} onClick={closeQuickView}>
+          <div className={styles.quickViewModal} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.closeBtn} onClick={closeQuickView}>
+              ×
+            </button>
+            
+            <div className={styles.modalContent}>
+              <div className={styles.modalImage}>
+                <Image
+                  src={quickViewProduct.image || '/placeholder-product.jpg'}
+                  alt={quickViewProduct.name}
+                  width={400}
+                  height={300}
+                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                />
+              </div>
+              
+              <div className={styles.modalInfo}>
+                <h2 className={styles.modalTitle}>{quickViewProduct.name}</h2>
+                <div className={styles.modalPrice}>
+                  ${getCurrentPrice().toLocaleString('es-CL')}
+                  {selectedWeight && (
+                    <span className={styles.weightInfo}> / {selectedWeight.weight}g</span>
+                  )}
+                </div>
+                
+                <p className={styles.modalDescription}>{quickViewProduct.description}</p>
+                
+                <div className={styles.modalCategory}>
+                  <strong>Categoría:</strong> {quickViewProduct.category}
+                </div>
+                
+                {/* Selector de peso */}
+                {getWeightOptions(quickViewProduct).length > 0 && (
+                  <div className={styles.weightSelector}>
+                    <label>Elige una opción:</label>
+                    <select 
+                      value={selectedWeight?.weight || ''}
+                      onChange={(e) => {
+                        const weight = parseInt(e.target.value)
+                        const option = getWeightOptions(quickViewProduct).find(w => w.weight === weight)
+                        setSelectedWeight(option || null)
+                      }}
+                      className={styles.weightSelect}
+                    >
+                      {getWeightOptions(quickViewProduct).map((option) => (
+                        <option key={option.weight} value={option.weight}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
+                {/* Selector de cantidad */}
+                <div className={styles.quantitySelector}>
+                  <label>Cantidad:</label>
+                  <div className={styles.quantityControls}>
+                    <button 
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className={styles.quantityBtn}
+                    >
+                      -
+                    </button>
+                    <span className={styles.quantity}>{quantity}</span>
+                    <button 
+                      onClick={() => setQuantity(quantity + 1)}
+                      className={styles.quantityBtn}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => addToCartFromModal(quickViewProduct, selectedWeight || undefined, quantity)}
+                  className={styles.modalAddToCartBtn}
+                  disabled={!selectedWeight}
+                >
+                  AÑADIR AL CARRITO
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

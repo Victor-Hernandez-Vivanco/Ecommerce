@@ -1,98 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { useCart } from '../context/CartContext'
 import styles from './carrito.module.css'
-
-interface CartItem {
-  id: string
-  name: string
-  price: number
-  weight: string
-  quantity: number
-  image: string
-  stock: number
-}
 
 export default function CarritoPage() {
   const router = useRouter()
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const [loading, setLoading] = useState(true)
-
-  // Productos de ejemplo para el carrito
-  const sampleCartItems: CartItem[] = [
-    {
-      id: '1',
-      name: 'Coco rallado natural',
-      price: 7890,
-      weight: '250g',
-      quantity: 2,
-      image: '/images/coco-rallado.jpg',
-      stock: 15
-    },
-    {
-      id: '2',
-      name: 'Mix cosavi',
-      price: 10990,
-      weight: '500g',
-      quantity: 1,
-      image: '/images/mix-cosavi.jpg',
-      stock: 8
-    },
-    {
-      id: '3',
-      name: 'Mantequilla maní Riwün',
-      price: 3900,
-      weight: '250g',
-      quantity: 3,
-      image: '/images/mantequilla-mani.jpg',
-      stock: 12
-    }
-  ]
-
-  useEffect(() => {
-    // Simular carga del carrito
-    const loadCart = async () => {
-      setLoading(true)
-      try {
-        // Aquí se cargaría desde localStorage o API
-        const savedCart = localStorage.getItem('cart')
-        if (savedCart) {
-          setCartItems(JSON.parse(savedCart))
-        } else {
-          // Usar productos de ejemplo
-          setCartItems(sampleCartItems)
-        }
-      } catch (error) {
-        console.log('Error cargando carrito, usando datos de ejemplo')
-        setCartItems(sampleCartItems)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadCart()
-  }, [])
-
-  const updateQuantity = (id: string, newQuantity: number) => {
-    if (newQuantity < 1) return
-    
-    setCartItems(prevItems => 
-      prevItems.map(item => {
-        if (item.id === id) {
-          const updatedQuantity = Math.min(newQuantity, item.stock)
-          return { ...item, quantity: updatedQuantity }
-        }
-        return item
-      })
-    )
-  }
-
-  const removeItem = (id: string) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== id))
-  }
+  const { state: cartState, updateQuantity, removeFromCart, clearCart } = useCart()
 
   const continueShopping = () => {
     router.push('/productos')
@@ -103,12 +20,12 @@ export default function CarritoPage() {
   }
 
   // Cálculos
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  const subtotal = cartState.totalAmount
   const neto = Math.round(subtotal / 1.19)
   const iva = subtotal - neto
   const total = subtotal
 
-  if (loading) {
+  if (cartState.loading) {
     return (
       <div className={styles.pageContainer}>
         <Navbar />
@@ -131,13 +48,13 @@ export default function CarritoPage() {
         <div className={styles.container}>
           {/* Header */}
           <div className={styles.pageHeader}>
-            <h1 className={styles.pageTitle}>Carrito de Compras</h1>
+            <h1 className={styles.pageTitle}>Mi Carrito</h1>
             <p className={styles.itemCount}>
-              {cartItems.length} {cartItems.length === 1 ? 'producto' : 'productos'} en tu carrito
+              {cartState.totalItems} {cartState.totalItems === 1 ? 'producto' : 'productos'} en tu carrito
             </p>
           </div>
 
-          {cartItems.length === 0 ? (
+          {cartState.items.length === 0 ? (
             <div className={styles.emptyCart}>
               <div className={styles.emptyCartIcon}>
                 <i className="fas fa-shopping-cart"></i>
@@ -152,28 +69,22 @@ export default function CarritoPage() {
           ) : (
             <div className={styles.cartContent}>
               {/* Lista de productos */}
-              <div className={styles.cartItems}>
-                <div className={styles.cartHeader}>
-                  <span>Producto</span>
-                  <span>Precio</span>
-                  <span>Cantidad</span>
-                  <span>Total</span>
-                  <span>Eliminar</span>
-                </div>
-                
-                {cartItems.map(item => (
-                  <div key={item.id} className={styles.cartItem}>
+              <div className={styles.cartItems}>                
+                {cartState.items.map(item => (
+                  <div key={`${item.productId}-${item.weight}`} className={styles.cartItem}>
                     <div className={styles.productInfo}>
-                      <img 
-                        src={item.image || '/placeholder-product.jpg'} 
+                      <Image 
+                        src={item.image || '/placeholder-product.jpg'}
                         alt={item.name}
+                        width={60}
+                        height={60}
                         onError={(e) => {
                           e.currentTarget.src = '/placeholder-product.jpg'
                         }}
                       />
                       <div className={styles.productDetails}>
                         <h3>{item.name}</h3>
-                        <p className={styles.weight}>{item.weight}</p>
+                        <p className={styles.weight}>{item.weight}g</p>
                       </div>
                     </div>
                     
@@ -183,7 +94,7 @@ export default function CarritoPage() {
                     
                     <div className={styles.quantityControls}>
                       <button 
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.productId, item.weight, item.quantity - 1)}
                         className={styles.quantityBtn}
                         disabled={item.quantity <= 1}
                       >
@@ -191,34 +102,36 @@ export default function CarritoPage() {
                       </button>
                       <span className={styles.quantity}>{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.productId, item.weight, item.quantity + 1)}
                         className={styles.quantityBtn}
-                        disabled={item.quantity >= item.stock}
                       >
                         +
                       </button>
                     </div>
                     
                     <div className={styles.itemTotal}>
-                      ${(item.price * item.quantity).toLocaleString('es-CL')}
+                      ${item.total.toLocaleString('es-CL')}
                     </div>
                     
-                    <div className={styles.actions}>
-                      <button 
-                        onClick={() => removeItem(item.id)}
-                        className={styles.removeBtn}
-                        title="Eliminar producto"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
-                    </div>
+                    <button 
+                      onClick={() => removeFromCart(item.productId, item.weight)}
+                      className={styles.removeBtn}
+                      title="Eliminar producto"
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
                   </div>
                 ))}
               </div>
-
+              
               {/* Resumen del pedido */}
               <div className={styles.orderSummary}>
-                <h2>Resumen del Pedido</h2>
+                <h3>Resumen del Pedido</h3>
+                
+                <div className={styles.summaryRow}>
+                  <span>Subtotal:</span>
+                  <span>${subtotal.toLocaleString('es-CL')}</span>
+                </div>
                 
                 <div className={styles.summaryRow}>
                   <span>Neto:</span>
@@ -230,7 +143,7 @@ export default function CarritoPage() {
                   <span>${iva.toLocaleString('es-CL')}</span>
                 </div>
                 
-                <div className={styles.summaryRow + ' ' + styles.total}>
+                <div className={`${styles.summaryRow} ${styles.total}`}>
                   <span>Total:</span>
                   <span>${total.toLocaleString('es-CL')}</span>
                 </div>
@@ -240,7 +153,7 @@ export default function CarritoPage() {
                     onClick={continueShopping}
                     className={styles.continueShoppingBtn}
                   >
-                    <i className="fas fa-arrow-left"></i>
+                    <i className="fas fa-shopping-bag"></i>
                     Seguir comprando
                   </button>
                   
@@ -250,6 +163,14 @@ export default function CarritoPage() {
                   >
                     <i className="fas fa-credit-card"></i>
                     Proceder al pago
+                  </button>
+                  
+                  <button 
+                    onClick={clearCart}
+                    className={styles.clearCartBtn}
+                  >
+                    <i className="fas fa-trash-alt"></i>
+                    Vaciar carrito
                   </button>
                 </div>
               </div>

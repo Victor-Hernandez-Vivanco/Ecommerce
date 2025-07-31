@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Poppins } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from './context/AuthContext'
-import AdminShortcut from './components/AdminShortcut'
+import { CartProvider } from './context/CartContext'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -28,10 +28,11 @@ export default function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
         />
       </head>
-      <body className={poppins.variable}>
+      <body className={poppins.className}>
         <AuthProvider>
-          <AdminShortcut />
-          {children}
+          <CartProvider>
+            {children}
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

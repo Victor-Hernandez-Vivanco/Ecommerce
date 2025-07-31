@@ -3,17 +3,18 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
+import { useCart } from '../context/CartContext'
 import LoginModal from './LoginModal'
 import RegisterModal from './RegisterModal'
 import styles from './Navbar.module.css'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [cartCount] = useState(0)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   
   const { user, isAuthenticated, login, register, logout } = useAuth()
+  const { state: cartState } = useCart()
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -66,7 +67,9 @@ export default function Navbar() {
             <li className={styles.navItem}>
               <Link href="/carrito" className={`${styles.navLink} ${styles.cartLink}`} onClick={closeMenu}>
                 <i className="fas fa-shopping-cart"></i>
-                <span className={styles.cartCount}>{cartCount}</span>
+                {cartState.totalItems > 0 && (
+                  <span className={styles.cartCount}>{cartState.totalItems}</span>
+                )}
               </Link>
             </li>
           </ul>

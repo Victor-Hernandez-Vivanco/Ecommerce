@@ -1,0 +1,440 @@
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* ===== HEADER ===== */
+.header {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1.5rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.headerContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerLeft h1 {
+  color: #2d3748;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.headerLeft p {
+  color: #718096;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4299e1;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  margin-bottom: 0.5rem;
+}
+
+.backButton:hover {
+  background: #ebf8ff;
+  color: #2b6cb0;
+}
+
+.createButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #48bb78;
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.createButton:hover {
+  background: #38a169;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* ===== FILTROS Y BÚSQUEDA ===== */
+.filtersSection {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.searchContainer {
+  margin-bottom: 1.5rem;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.filterButtons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  border: 2px solid #e2e8f0;
+  background: white;
+  color: #4a5568;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filterButton:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+.filterButton.active {
+  background: #4299e1;
+  color: white;
+  border-color: #4299e1;
+}
+
+/* ===== SECCIÓN DE PUBLICIDADES ===== */
+.advertisementsSection {
+  background: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* ===== ESTADO VACÍO ===== */
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #718096;
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.emptyState h3 {
+  color: #2d3748;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.emptyState p {
+  margin-bottom: 2rem;
+}
+
+/* ===== LISTA DE PUBLICIDADES ===== */
+.advertisementsList {
+  display: flex;
+  flex-direction: column;
+}
+
+.listHeader {
+  display: grid;
+  grid-template-columns: 100px 1fr 120px 80px 120px 120px 100px;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #f7fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.875rem;
+}
+
+.headerCell {
+  display: flex;
+  align-items: center;
+}
+
+.listRow {
+  display: grid;
+  grid-template-columns: 100px 1fr 120px 80px 120px 120px 100px;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s;
+}
+
+.listRow:hover {
+  background: #f8fafc;
+}
+
+.listCell {
+  display: flex;
+  align-items: center;
+}
+
+/* ===== IMAGEN DE PUBLICIDAD ===== */
+.advertisementImage {
+  border-radius: 0.375rem;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+}
+
+/* ===== INFORMACIÓN DE PUBLICIDAD ===== */
+.advertisementInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.advertisementTitle {
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.advertisementDescription {
+  color: #718096;
+  font-size: 0.8rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.advertisementLink {
+  color: #4299e1;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.advertisementLink:hover {
+  text-decoration: underline;
+}
+
+/* ===== ETIQUETAS DE TIPO ===== */
+.typeTag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.typeTag.product {
+  background: #e6fffa;
+  color: #234e52;
+}
+
+.typeTag.promotion {
+  background: #fef5e7;
+  color: #744210;
+}
+
+.typeTag.external {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.typeTag.announcement {
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+
+/* ===== NÚMERO DE ORDEN ===== */
+.orderNumber {
+  background: #edf2f7;
+  color: #4a5568;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* ===== BOTÓN DE ESTADO ===== */
+.statusButton {
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.statusButton.active {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.statusButton.inactive {
+  background: #fed7d7;
+  color: #742a2a;
+}
+
+.statusButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ===== ESTADÍSTICAS ===== */
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #718096;
+}
+
+/* ===== ACCIONES ===== */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.editButton,
+.deleteButton {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.editButton {
+  background: #bee3f8;
+  color: #2c5282;
+}
+
+.editButton:hover {
+  background: #90cdf4;
+  transform: translateY(-1px);
+}
+
+.deleteButton {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.deleteButton:hover {
+  background: #feb2b2;
+  transform: translateY(-1px);
+}
+
+/* ===== LOADING ===== */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: #718096;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #4299e1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .listHeader,
+  .listRow {
+    grid-template-columns: 80px 1fr 100px 60px 100px 100px 80px;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .headerContent {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .main {
+    padding: 1rem;
+  }
+  
+  .listHeader,
+  .listRow {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .listCell {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  
+  .filterButtons {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerContent {
+    padding: 0 1rem;
+  }
+  
+  .filtersSection,
+  .advertisementsSection {
+    margin: 0 -1rem;
+    border-radius: 0;
+  }
+}

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { useCart } from '../context/CartContext'
 import styles from './productos.module.css'
 
 // ✅ INTERFAZ ACTUALIZADA PARA EL NUEVO MODELO
@@ -37,6 +38,7 @@ interface WeightOption {
 
 export default function ProductosPage() {
   const router = useRouter()
+  const { addToCart: addToCartContext } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -176,10 +178,28 @@ export default function ProductosPage() {
     router.push(`/productos/${product._id}`)
   }
 
-  // Mantener la función addToCart para el modal de vista rápida
+  // ✅ FUNCIÓN addToCart CORREGIDA PARA USAR EL CONTEXTO
   const addToCart = (product: Product, weight?: WeightOption | undefined, qty: number = 1) => {
-    console.log('Agregado al carrito:', { product, weight, quantity: qty })
-    alert(`${product.name} agregado al carrito`)
+    if (!weight) {
+      console.warn('Cannot add to cart: no weight selected')
+      return
+    }
+    
+    const cartItem = {
+      productId: product._id,
+      name: product.name,
+      image: product.image || '/placeholder-product.jpg',
+      weight: weight.weight,
+      price: weight.price,
+      quantity: qty,
+      stock: weight.stock
+    }
+    
+    // Usar el contexto para agregar al carrito
+    addToCartContext(cartItem)
+    
+    // Mostrar mensaje de éxito y cerrar modal
+    alert(`${product.name} agregado al carrito exitosamente`)
     closeQuickView()
   }
 

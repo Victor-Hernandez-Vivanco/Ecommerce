@@ -1,28 +1,49 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from "next";
+
+// ACÁ SE DEBE CONFIGURAR LA URL DE LA IMAGEN A MOSTRAR EN LA PUBLICIDAD DE LO CONTRARIO NEXT NO LA ACEPTARÁ
+
+const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "img.freepik.com",
+        port: "",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: 'via.placeholder.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.pixabay.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.google.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "piwencl.vtexassets.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "productoslacena.com.ec",
+        port: "",
+        pathname: "/**",
+      },
+      // Agregar más dominios según necesites
     ],
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // Configuración adicional para manejo de errores
-  experimental: {
-    optimizePackageImports: ['@heroicons/react'],
-  },
-}
+};
 
-module.exports = nextConfig;
+export default nextConfig;

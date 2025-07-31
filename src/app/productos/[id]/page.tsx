@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import styles from './producto.module.css'
+import { useCart } from '../../context/CartContext'
 
 // ✅ INTERFAZ ACTUALIZADA PARA EL NUEVO MODELO
 interface Product {
@@ -56,42 +57,98 @@ export default function ProductoPage() {
   const [showZoomModal, setShowZoomModal] = useState(false)
   const [isImageLoading, setIsImageLoading] = useState(false)
 
-  // ✅ FUNCIÓN HELPER PARA OBTENER IMAGEN PRINCIPAL
-  const getProductImage = (product: Product) => {
+  // ✅ FUNCIÓN PARA OBTENER IMAGEN CORRECTA
+  const getCorrectImagePath = useCallback((product: Product) => {
+    console.log('🔍 Debugging product images:', {
+      productName: product.name,
+      images: product.images,
+      image: product.image
+    })
+    
+    // Sistema nuevo: campo 'images' (array)
     if (product.images && product.images.length > 0) {
       const primaryImage = product.images.find(img => img.isPrimary)
-      return primaryImage ? primaryImage.url : product.images[0].url
+      const imageUrl = primaryImage ? primaryImage.url : product.images[0].url
+      
+      console.log('📸 Image URL from array:', imageUrl)
+      
+      // Si ya es una URL completa (http o /uploads/), devolverla tal como está
+      if (imageUrl && (imageUrl.startsWith('http') || imageUrl.startsWith('/uploads/'))) {
+        return imageUrl
+      }
+      
+      // Si es solo el nombre del archivo, agregar la ruta completa
+      if (imageUrl) {
+        const fullPath = `/uploads/products/${imageUrl}`
+        console.log('🔗 Generated full path:', fullPath)
+        return fullPath
+      }
     }
-    return product.image || '/placeholder-product.jpg'
-  }
+    
+    // Sistema antiguo: campo 'image' (string)
+    if (product.image) {
+      console.log('📸 Image URL from string:', product.image)
+      
+      // Si es una URL externa (Unsplash), devolverla tal como está
+      if (product.image.startsWith('http')) {
+        return product.image
+      }
+      
+      // Si ya tiene /uploads/, devolverla tal como está
+      if (product.image.startsWith('/uploads/')) {
+        return product.image
+      }
+      
+      // Si es solo el nombre del archivo, agregar la ruta completa
+      const fullPath = `/uploads/products/${product.image}`
+      console.log('🔗 Generated full path for string:', fullPath)
+      return fullPath
+    }
+    
+    // Fallback
+    console.log('⚠️ Using fallback image')
+    return '/placeholder-product.jpg'
+  }, [])
 
-  // ✅ FUNCIÓN PARA OBTENER TODAS LAS IMÁGENES
-  const getAllImages = (product: Product) => {
+  // ✅ FUNCIÓN HELPER PARA OBTENER IMAGEN PRINCIPAL - MEMOIZADA
+  const getProductImage = useCallback((product: Product) => {
+    return getCorrectImagePath(product)
+  }, [getCorrectImagePath])
+
+  // ✅ FUNCIÓN PARA OBTENER TODAS LAS IMÁGENES - MEMOIZADA
+  const getAllImages = useCallback((product: Product) => {
     if (product.images && product.images.length > 0) {
-      return product.images.map(img => img.url)
+      return product.images.map(img => {
+        const imageUrl = img.url
+        // Si es una ruta local, verificar que tenga la ruta completa
+        if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/uploads/')) {
+          return `/uploads/products/${imageUrl}`
+        }
+        return imageUrl
+      })
     }
-    return [product.image || '/placeholder-product.jpg']
-  }
+    return [getCorrectImagePath(product)]
+  }, [getCorrectImagePath])
 
-  // ✅ FUNCIÓN PARA OBTENER IMAGEN ACTUAL
-  const getCurrentImage = () => {
+  // ✅ FUNCIÓN PARA OBTENER IMAGEN ACTUAL - MEMOIZADA
+  const getCurrentImage = useCallback(() => {
     if (!product) return '/placeholder-product.jpg'
     const images = getAllImages(product)
     return images[currentImageIndex] || images[0]
-  }
+  }, [product, currentImageIndex, getAllImages])
 
-  // ✅ NAVEGACIÓN DE IMÁGENES CON useCallback
+  // ✅ NAVEGACIÓN DE IMÁGENES CON useCallback - DEPENDENCIAS CORREGIDAS
   const nextImage = useCallback(() => {
     if (!product) return
     const images = getAllImages(product)
     setCurrentImageIndex((prev) => (prev + 1) % images.length)
-  }, [product])
+  }, [product, getAllImages])
 
   const prevImage = useCallback(() => {
     if (!product) return
     const images = getAllImages(product)
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
-  }, [product])
+  }, [product, getAllImages])
 
   const selectImage = (index: number) => {
     setCurrentImageIndex(index)
@@ -117,67 +174,69 @@ export default function ProductoPage() {
     return product.basePricePer100g || 0
   }
 
-  // ✅ FUNCIÓN HELPER PARA OBTENER OPCIONES DE PESO
+  // ✅ FUNCIÓN HELPER MEJORADA PARA OBTENER OPCIONES DE PESO
   const getWeightOptions = (product: Product): WeightOption[] => {
+    console.log('Product pricesByWeight:', product.pricesByWeight) // Debug
     if (product.pricesByWeight && product.pricesByWeight.length > 0) {
       return product.pricesByWeight.map(option => ({
         weight: option.weight,
         price: option.price,
-        stock: option.stock,
+        stock: option.stock || 999, // Valor por defecto si no hay stock
         label: option.weight >= 1000 ? `${option.weight / 1000}kg` : `${option.weight}g`
       }))
+    }
+    // ✅ FALLBACK: Si no hay pricesByWeight, crear opciones básicas
+    if (product.basePricePer100g) {
+      return [
+        { weight: 100, price: product.basePricePer100g, stock: 999, label: '100g' },
+        { weight: 250, price: Math.round(product.basePricePer100g * 2.5), stock: 999, label: '250g' },
+        { weight: 500, price: Math.round(product.basePricePer100g * 5), stock: 999, label: '500g' }
+      ]
     }
     return []
   }
 
-  // ✅ CARGAR PRODUCTOS RECOMENDADOS DESDE API - CORREGIDO
+  // ✅ FUNCIÓN MEMOIZADA PARA CARGAR PRODUCTOS RECOMENDADOS - OPCIÓN 2
   const loadRecommendedProducts = useCallback(async () => {
+    if (!product) return
+    
+    setLoadingRecommended(true)
     try {
-      setLoadingRecommended(true)
-      
-      // ✅ CORREGIDO: Cargar productos del carrusel principal (isMainCarousel)
-      const response = await fetch('/api/products/main-carousel')
-      
+      const response = await fetch(`/api/products/main-carousel`)
       if (response.ok) {
-        const products: Product[] = await response.json()
-        // Filtrar el producto actual y mostrar todos los productos disponibles
-        const filtered = products.filter(p => p._id !== params.id)
-        setRecommendedProducts(filtered)
-        console.log(`✅ Cargados ${filtered.length} productos recomendados del carrusel principal`)
-      } else {
-        // Si falla, cargar productos generales como fallback
-        const fallbackResponse = await fetch('/api/products')
-        if (fallbackResponse.ok) {
-          const allProducts: Product[] = await fallbackResponse.json()
-          const filtered = allProducts.filter(p => p._id !== params.id).slice(0, 12)
-          setRecommendedProducts(filtered)
-          console.log(`⚠️ Fallback: Cargados ${filtered.length} productos generales`)
-        }
+        const data = await response.json()
+        console.log('📦 Productos recibidos de main-carousel:', data)
+        // ✅ CORREGIDO: No filtrar el producto actual, mostrar todos los del carrusel
+        setRecommendedProducts(data.slice(0, 10))
+        console.log('✅ Productos para carrusel:', data)
       }
     } catch (error) {
       console.error('Error cargando productos recomendados:', error)
-      // En caso de error, usar array vacío
-      setRecommendedProducts([])
     } finally {
       setLoadingRecommended(false)
     }
-  }, [params.id])
+  }, [product])
 
-  const totalSlides = Math.ceil(recommendedProducts.length / 5)
-
-  // ✅ FUNCIÓN MEMOIZADA PARA CARGAR PRODUCTO
+  // ✅ FUNCIÓN MEMOIZADA MEJORADA PARA CARGAR PRODUCTO
   const loadProduct = useCallback(async () => {
     setLoading(true)
     try {
       const response = await fetch(`/api/products/${params.id}`)
       if (response.ok) {
         const data = await response.json()
+        console.log('Producto cargado:', data) // Debug
         setProduct(data)
         
-        // Configurar peso por defecto
+        // ✅ CONFIGURAR PESO POR DEFECTO MEJORADO
         const weightOptions = getWeightOptions(data)
+        console.log('Weight options:', weightOptions) // Debug
         if (weightOptions.length > 0) {
-          setSelectedWeight(weightOptions[0])
+          // Seleccionar la primera opción disponible con stock
+          const availableOption = weightOptions.find(option => option.stock > 0) || weightOptions[0]
+          setSelectedWeight(availableOption)
+          console.log('Selected weight:', availableOption) // Debug
+        } else {
+          console.warn('No weight options available for product:', data.name)
         }
       } else {
         setProduct(null)
@@ -192,15 +251,29 @@ export default function ProductoPage() {
 
   useEffect(() => {
     loadProduct()
-    loadRecommendedProducts()
-  }, [loadProduct, loadRecommendedProducts])
+  }, [loadProduct])
 
+  useEffect(() => {
+    if (product) {
+      loadRecommendedProducts()
+    }
+  }, [product, loadRecommendedProducts])
+
+  // ✅ VARIABLES CALCULADAS
   const weightOptions = product ? getWeightOptions(product) : []
   const maxQuantity = selectedWeight ? selectedWeight.stock : 0
   const isOutOfStock = !selectedWeight || selectedWeight.stock === 0
+  const totalSlides = Math.ceil(recommendedProducts.length / 5)
 
+  // ✅ FUNCIÓN addToCart MEJORADA CON LOGS
+  const { addToCart: addToCartContext } = useCart()
+
+  // ✅ FUNCIÓN addToCart ACTUALIZADA
   const addToCart = () => {
-    if (!selectedWeight || !product) return
+    if (!selectedWeight || !product) {
+      console.warn('Cannot add to cart: missing selectedWeight or product')
+      return
+    }
     
     const cartItem = {
       productId: product._id,
@@ -209,28 +282,11 @@ export default function ProductoPage() {
       weight: selectedWeight.weight,
       price: selectedWeight.price,
       quantity: quantity,
-      total: selectedWeight.price * quantity
+      stock: selectedWeight.stock
     }
     
-    // Obtener carrito actual
-    const currentCart = JSON.parse(localStorage.getItem('cart') || '[]')
-    
-    // Buscar si el producto ya existe con el mismo peso
-    const existingItemIndex = currentCart.findIndex(
-      (item: { productId: string; weight: number }) => item.productId === cartItem.productId && item.weight === cartItem.weight
-    )
-    
-    if (existingItemIndex >= 0) {
-      // Actualizar cantidad
-      currentCart[existingItemIndex].quantity += cartItem.quantity
-      currentCart[existingItemIndex].total = currentCart[existingItemIndex].price * currentCart[existingItemIndex].quantity
-    } else {
-      // Agregar nuevo item
-      currentCart.push(cartItem)
-    }
-    
-    // Guardar en localStorage
-    localStorage.setItem('cart', JSON.stringify(currentCart))
+    // Usar el contexto para agregar al carrito
+    addToCartContext(cartItem)
     
     // Mostrar mensaje de éxito
     setShowSuccess(true)
@@ -364,11 +420,6 @@ export default function ProductoPage() {
                         target.src = '/placeholder-product.jpg'
                       }}
                     />
-                    {/* Overlay de zoom */}
-                    {/* <div className={styles.zoomOverlay}>
-                      <i className="fas fa-search-plus"></i>
-                      <span>Click para ampliar</span>
-                    </div> */}
                     
                     {product.discount > 0 && (
                       <div className={styles.discountBadge}>
@@ -438,14 +489,6 @@ export default function ProductoPage() {
               <div className={styles.productInfo}>
                 <div className={styles.productHeader}>
                   <h1 className={styles.productTitle}>{product.name}</h1>
-                  {/* <div className={styles.ratingSection}>
-                    <div className={styles.stars}>
-                      {[1,2,3,4,5].map(star => (
-                        <i key={star} className="fas fa-star" style={{color: '#ffc107'}}></i>
-                      ))}
-                    </div>
-                    <span className={styles.ratingText}>4.9 (8)</span>
-                  </div> */}
                   <div className={styles.stockBadge}>
                     <span className={styles.availableBadge}>Disponible</span>
                   </div>
@@ -467,16 +510,20 @@ export default function ProductoPage() {
                   <div className={styles.weightSection}>
                     <div className={styles.weightButtons}>
                       {weightOptions
-                        .filter(option => option.stock > 0) /* ✅ SOLO MOSTRAR CON STOCK */
+                        .filter(option => option.stock > 0 || weightOptions.length === 1) /* ✅ MOSTRAR AL MENOS UNA OPCIÓN */
                         .map((option) => (
                           <button
                             key={option.weight}
                             className={`${styles.weightButton} ${
                               selectedWeight?.weight === option.weight ? styles.selected : ''
                             }`}
-                            onClick={() => setSelectedWeight(option)}
+                            onClick={() => {
+                              setSelectedWeight(option)
+                              console.log('Weight selected:', option) // Debug
+                            }}
                           >
                             {option.label}
+                            {option.stock <= 0 && <span className={styles.outOfStock}> (Agotado)</span>}
                           </button>
                         ))}
                     </div>
@@ -513,11 +560,15 @@ export default function ProductoPage() {
                   <div className={styles.purchaseSection}>
                     <div className={styles.purchaseActions}>
                       <button 
-                        onClick={addToCart}
+                        onClick={() => {
+                          console.log('Button clicked, selectedWeight:', selectedWeight) // Debug
+                          addToCart()
+                        }}
                         className={styles.addToCartBtn}
-                        disabled={!selectedWeight}
+                        disabled={!selectedWeight || isOutOfStock}
+                        title={!selectedWeight ? 'Selecciona un peso primero' : isOutOfStock ? 'Producto agotado' : 'Agregar al carrito'}
                       >
-                        Agregar al carrito
+                        {isOutOfStock ? 'Producto Agotado' : 'Agregar al carrito'}
                       </button>
                       
                       {/* ✅ BOTONES CONDICIONALMENTE VISIBLES */}
@@ -569,112 +620,80 @@ export default function ProductoPage() {
                 >
                   <i className="fas fa-times"></i>
                 </button>
-                <Image
-                  src={getCurrentImage()}
-                  alt={product.name}
-                  width={800}
-                  height={600}
-                  style={{ objectFit: 'contain', maxWidth: '90vw', maxHeight: '90vh' }}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.src = '/placeholder-product.jpg'
-                  }}
-                />
                 
-                {/* Navegación en modal */}
-                {getAllImages(product).length > 1 && (
-                  <>
-                    <button 
-                      className={`${styles.zoomNavArrow} ${styles.zoomNavArrowLeft}`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        prevImage()
-                      }}
-                    >
-                      <i className="fas fa-chevron-left"></i>
-                    </button>
-                    <button 
-                      className={`${styles.zoomNavArrow} ${styles.zoomNavArrowRight}`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        nextImage()
-                      }}
-                    >
-                      <i className="fas fa-chevron-right"></i>
-                    </button>
-                  </>
-                )}
+                <div className={styles.zoomImageContainer}>
+                  <Image
+                    src={getCurrentImage()}
+                    alt={product.name}
+                    fill
+                    sizes="90vw"
+                    style={{ objectFit: 'contain' }}
+                    onError={(e) => {
+                      console.error('Error loading zoom image:', e)
+                      e.currentTarget.src = '/placeholder-product.jpg'
+                    }}
+                  />
+                </div>
                 
                 {/* Indicador de imagen */}
-                <div className={styles.zoomImageIndicator}>
-                  {currentImageIndex + 1} / {getAllImages(product).length}
-                </div>
+                {getAllImages(product).length > 1 && (
+                  <div className={styles.zoomImageIndicator}>
+                    {currentImageIndex + 1} / {getAllImages(product).length}
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* ✅ CARRUSEL DE PRODUCTOS RECOMENDADOS RESTAURADO */}
-          {!loadingRecommended && recommendedProducts.length > 0 && (
+          {/* ✅ SECCIÓN DE PRODUCTOS RECOMENDADOS */}
+          {recommendedProducts.length > 0 && (
             <section className={styles.recommendedSection}>
-              <div className={styles.recommendedHeader}>
-                <h2 className={styles.recommendedTitle}>También te puede interesar</h2>
-                <p className={styles.recommendedSubtitle}>Productos del carrusel principal</p>
-              </div>
+              <h2 className={styles.recommendedTitle}>Productos Recomendados</h2>
               
-              <div className={styles.carouselContainer}>
-                <div className={styles.carousel}>
-                  <div className={styles.carouselTrack}>
+              {/* ✅ INDICADOR DE CARGA PARA PRODUCTOS RECOMENDADOS */}
+              {loadingRecommended ? (
+                <div className={styles.loadingRecommended}>
+                  <div className={styles.spinner}></div>
+                  <p>Cargando productos recomendados...</p>
+                </div>
+              ) : (
+                <div className={styles.carouselContainer}>
+                  <div className={styles.carouselWrapper}>
                     <div 
-                      className={styles.carouselSlides}
-                      style={{
-                        transform: `translateX(-${currentSlide * 100}%)`,
-                        width: `${totalSlides * 100}%`
-                      }}
+                      className={styles.carouselTrack}
+                      style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                     >
                       {Array.from({ length: totalSlides }).map((_, slideIndex) => (
                         <div key={slideIndex} className={styles.carouselSlide}>
                           {recommendedProducts
                             .slice(slideIndex * 5, (slideIndex + 1) * 5)
-                            .map((product) => (
+                            .map((recProduct) => (
                               <div 
-                                key={product._id} 
-                                className={styles.recommendedProduct}
-                                onClick={() => navigateToProduct(product._id)}
+                                key={recProduct._id} 
+                                className={styles.recommendedCard}
+                                onClick={() => navigateToProduct(recProduct._id)}
                               >
-                                <div className={styles.productImageContainer}>
+                                <div className={styles.recommendedImageContainer}>
                                   <Image
-                                    src={getProductImage(product)}
-                                    alt={product.name}
-                                    width={200}
-                                    height={160}
+                                    src={getProductImage(recProduct)}
+                                    alt={recProduct.name}
+                                    fill
                                     style={{ objectFit: 'cover' }}
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement
                                       target.src = '/placeholder-product.jpg'
                                     }}
                                   />
-                                  <div className={styles.hoverOverlay}>
-                                    <i className="fas fa-eye"></i>
-                                    <span>Ver Producto</span>
-                                  </div>
-                                  {product.discount > 0 && (
-                                    <div className={styles.productDiscount}>
-                                      -{product.discount}%
+                                  {recProduct.discount > 0 && (
+                                    <div className={styles.recommendedDiscount}>
+                                      -{recProduct.discount}%
                                     </div>
                                   )}
                                 </div>
-                                <div className={styles.productDetails}>
-                                  <h4 className={styles.productName}>{product.name}</h4>
-                                  <p className={styles.productPrice}>
-                                    ${getProductPrice(product).toLocaleString('es-CL')} CLP
-                                  </p>
-                                  <div className={styles.productRating}>
-                                    <div className={styles.stars}>
-                                      {[1,2,3,4,5].map(star => (
-                                        <i key={star} className="fas fa-star"></i>
-                                      ))}
-                                    </div>
-                                    <span className={styles.ratingText}>(4.8)</span>
+                                <div className={styles.recommendedInfo}>
+                                  <h3 className={styles.recommendedName}>{recProduct.name}</h3>
+                                  <div className={styles.recommendedPrice}>
+                                    ${getProductPrice(recProduct).toLocaleString('es-CL')}
                                   </div>
                                 </div>
                               </div>
@@ -683,49 +702,45 @@ export default function ProductoPage() {
                       ))}
                     </div>
                   </div>
+                  
+                  {/* Controles del carrusel */}
+                  {totalSlides > 1 && (
+                    <>
+                      <button 
+                        className={`${styles.carouselArrow} ${styles.carouselArrowLeft}`}
+                        onClick={prevSlide}
+                        disabled={currentSlide === 0}
+                      >
+                        <i className="fas fa-chevron-left"></i>
+                      </button>
+                      <button 
+                        className={`${styles.carouselArrow} ${styles.carouselArrowRight}`}
+                        onClick={nextSlide}
+                        disabled={currentSlide === totalSlides - 1}
+                      >
+                        <i className="fas fa-chevron-right"></i>
+                      </button>
+                      
+                      <div className={styles.carouselDots}>
+                        {Array.from({ length: totalSlides }).map((_, index) => (
+                          <button
+                            key={index}
+                            className={`${styles.carouselDot} ${
+                              index === currentSlide ? styles.carouselDotActive : ''
+                            }`}
+                            onClick={() => goToSlide(index)}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
-                
-                {totalSlides > 1 && (
-                  <>
-                    <button 
-                      className={`${styles.carouselBtn} ${styles.prevBtn}`}
-                      onClick={prevSlide}
-                      disabled={currentSlide === 0}
-                    >
-                      <i className="fas fa-chevron-left"></i>
-                    </button>
-                    <button 
-                      className={`${styles.carouselBtn} ${styles.nextBtn}`}
-                      onClick={nextSlide}
-                      disabled={currentSlide === totalSlides - 1}
-                    >
-                      <i className="fas fa-chevron-right"></i>
-                    </button>
-                    
-                    <div className={styles.carouselIndicators}>
-                      {Array.from({ length: totalSlides }).map((_, index) => (
-                        <button
-                          key={index}
-                          className={`${styles.indicator} ${index === currentSlide ? styles.active : ''}`}
-                          onClick={() => goToSlide(index)}
-                        >
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+              )}
             </section>
-          )}
-
-          {loadingRecommended && (
-            <div className={styles.loadingRecommended}>
-              <div className={styles.spinner}></div>
-              <p>Cargando productos recomendados...</p>
-            </div>
           )}
         </div>
       </main>
+      
       <Footer />
     </div>
   )

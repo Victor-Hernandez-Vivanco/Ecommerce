@@ -2,18 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { useCart } from '../context/CartContext'
 import styles from './checkout.module.css'
 
-interface CartItem {
-  id: string
+// ✅ INTERFAZ CORREGIDA PARA COINCIDIR CON CARTCONTEXT
+interface CheckoutCartItem {
+  productId: string
   name: string
   price: number
-  weight: string
+  weight: number
   quantity: number
   image: string
-  stock: number
+  stock?: number
+  total?: number
 }
 
 interface ShippingInfo {
@@ -39,7 +43,7 @@ interface PaymentInfo {
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const { state, updateQuantity: updateCartQuantity, removeFromCart } = useCart()
   const [loading, setLoading] = useState(true)
   const [currentStep, setCurrentStep] = useState(1)
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
@@ -62,74 +66,24 @@ export default function CheckoutPage() {
     cardName: ''
   })
 
-  // Productos de ejemplo para el checkout
-  const sampleCartItems: CartItem[] = [
-    {
-      id: '1',
-      name: 'Coco rallado natural',
-      price: 7890,
-      weight: '250g',
-      quantity: 2,
-      image: '/images/coco-rallado.jpg',
-      stock: 15
-    },
-    {
-      id: '2',
-      name: 'Mix cosavi',
-      price: 10990,
-      weight: '500g',
-      quantity: 1,
-      image: '/images/mix-cosavi.jpg',
-      stock: 8
-    },
-    {
-      id: '3',
-      name: 'Mantequilla maní Riwün',
-      price: 3900,
-      weight: '250g',
-      quantity: 3,
-      image: '/images/mantequilla-mani.jpg',
-      stock: 12
-    }
-  ]
+  // ✅ USAR ITEMS DEL CONTEXTO
+  const cartItems: CheckoutCartItem[] = state.items
 
   useEffect(() => {
-    const loadCart = async () => {
-      setLoading(true)
-      try {
-        const savedCart = localStorage.getItem('cart')
-        if (savedCart) {
-          setCartItems(JSON.parse(savedCart))
-        } else {
-          setCartItems(sampleCartItems)
-        }
-      } catch (error) {
-        console.log('Error cargando carrito, usando datos de ejemplo')
-        setCartItems(sampleCartItems)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadCart()
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 500)
+    
+    return () => clearTimeout(timer)
   }, [])
 
-  const updateQuantity = (id: string, newQuantity: number) => {
+  const updateQuantity = (productId: string, weight: number, newQuantity: number) => {
     if (newQuantity < 1) return
-    
-    setCartItems(prevItems => 
-      prevItems.map(item => {
-        if (item.id === id) {
-          const updatedQuantity = Math.min(newQuantity, item.stock)
-          return { ...item, quantity: updatedQuantity }
-        }
-        return item
-      })
-    )
+    updateCartQuantity(productId, weight, newQuantity)
   }
 
-  const removeItem = (id: string) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== id))
+  const removeItem = (productId: string, weight: number) => {
+    removeFromCart(productId, weight)
   }
 
   const goBackToCart = () => {
@@ -149,8 +103,8 @@ export default function CheckoutPage() {
       return cartItems.length > 0
     }
     if (step === 2) {
-      const basicInfo = shippingInfo.firstName && shippingInfo.lastName && 
-                       shippingInfo.email && shippingInfo.phone
+      const basicInfo = shippingInfo.firstName && shippingInfo.lastName &&
+        shippingInfo.email && shippingInfo.phone
       
       if (shippingInfo.deliveryMethod === 'delivery') {
         return basicInfo && shippingInfo.address && shippingInfo.city && shippingInfo.region
@@ -159,10 +113,10 @@ export default function CheckoutPage() {
     }
     if (step === 3) {
       if (paymentInfo.method === 'transfer') {
-        return true // No se requieren datos adicionales para transferencia
+        return true
       }
-      return paymentInfo.cardNumber && paymentInfo.expiryDate && 
-             paymentInfo.cvv && paymentInfo.cardName
+      return paymentInfo.cardNumber && paymentInfo.expiryDate &&
+        paymentInfo.cvv && paymentInfo.cardName
     }
     return false
   }
@@ -238,8 +192,8 @@ export default function CheckoutPage() {
           <div className={styles.pageHeader}>
             <h1 className={styles.pageTitle}>Checkout</h1>
             <div className={styles.breadcrumb}>
-              <span onClick={goBackToCart} className={styles.breadcrumbLink}>Carrito</span>
-              <span className={styles.breadcrumbSeparator}>{'>'}</span>
+              <button onClick={goBackToCart} className={styles.breadcrumbLink}>Carrito</button>
+              <span className={styles.breadcrumbSeparator}>&gt;</span>
               <span className={styles.breadcrumbCurrent}>Checkout</span>
             </div>
           </div>
@@ -276,18 +230,18 @@ export default function CheckoutPage() {
                     </div>
                     
                     {cartItems.map(item => (
-                      <div key={item.id} className={styles.cartItem}>
+                      <div key={`${item.productId}-${item.weight}`} className={styles.cartItem}>
                         <div className={styles.productInfo}>
-                          <img 
-                            src={item.image || '/placeholder-product.jpg'} 
+                          <Image
+                            src={item.image || '/placeholder-product.jpg'}
                             alt={item.name}
-                            onError={(e) => {
-                              e.currentTarget.src = '/placeholder-product.jpg'
-                            }}
+                            width={80}
+                            height={80}
+                            style={{ objectFit: 'cover' }}
                           />
                           <div className={styles.productDetails}>
                             <h3>{item.name}</h3>
-                            <p className={styles.weight}>{item.weight}</p>
+                            <p className={styles.weight}>{item.weight}g</p>
                           </div>
                         </div>
                         
@@ -296,18 +250,18 @@ export default function CheckoutPage() {
                         </div>
                         
                         <div className={styles.quantityControls}>
-                          <button 
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          <button
+                            onClick={() => updateQuantity(item.productId, item.weight, item.quantity - 1)}
                             className={styles.quantityBtn}
                             disabled={item.quantity <= 1}
                           >
                             -
                           </button>
                           <span className={styles.quantity}>{item.quantity}</span>
-                          <button 
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          <button
+                            onClick={() => updateQuantity(item.productId, item.weight, item.quantity + 1)}
                             className={styles.quantityBtn}
-                            disabled={item.quantity >= item.stock}
+                            disabled={item.quantity >= (item.stock || 999)}
                           >
                             +
                           </button>
@@ -318,12 +272,12 @@ export default function CheckoutPage() {
                         </div>
                         
                         <div className={styles.actions}>
-                          <button 
-                            onClick={() => removeItem(item.id)}
+                          <button
+                            onClick={() => removeItem(item.productId, item.weight)}
                             className={styles.removeBtn}
                             title="Eliminar producto"
                           >
-                            <i className="fas fa-trash"></i>
+                            🗑️
                           </button>
                         </div>
                       </div>
@@ -338,7 +292,6 @@ export default function CheckoutPage() {
               <div className={styles.stepContent}>
                 <h2>Información de Envío</h2>
                 
-                {/* Delivery Method Selection */}
                 <div className={styles.deliveryMethods}>
                   <h3>Método de Entrega</h3>
                   <div className={styles.deliveryOptions}>
@@ -352,7 +305,7 @@ export default function CheckoutPage() {
                       />
                       <div className={styles.optionContent}>
                         <div className={styles.optionHeader}>
-                          <i className="fas fa-truck"></i>
+                          <span>🚚</span>
                           <span>Envío a Domicilio</span>
                           <span className={styles.deliveryPrice}>$2.500</span>
                         </div>
@@ -370,14 +323,13 @@ export default function CheckoutPage() {
                       />
                       <div className={styles.optionContent}>
                         <div className={styles.optionHeader}>
-                          <i className="fas fa-store"></i>
+                          <span>🏪</span>
                           <span>Retiro en Tienda</span>
                           <span className={styles.deliveryPrice}>Gratis</span>
                         </div>
                         <p>Disponible de Lunes a Viernes de 9:00 a 18:00</p>
                         <p className={styles.storeAddress}>
-                          <i className="fas fa-map-marker-alt"></i>
-                          Av. Providencia 1234, Providencia, Santiago
+                          📍 Av. Providencia 1234, Providencia, Santiago
                         </p>
                       </div>
                     </label>
@@ -472,7 +424,7 @@ export default function CheckoutPage() {
                             <option value="los-lagos">Los Lagos</option>
                             <option value="antofagasta">Antofagasta</option>
                             <option value="coquimbo">Coquimbo</option>
-                            <option value="ohiggins">O'Higgins</option>
+                            <option value="ohiggins">O´Higgins</option>
                             <option value="maule">Maule</option>
                             <option value="atacama">Atacama</option>
                             <option value="los-rios">Los Ríos</option>
@@ -500,7 +452,7 @@ export default function CheckoutPage() {
                     <textarea
                       value={shippingInfo.notes}
                       onChange={(e) => handleShippingChange('notes', e.target.value)}
-                      placeholder={shippingInfo.deliveryMethod === 'pickup' 
+                      placeholder={shippingInfo.deliveryMethod === 'pickup'
                         ? "Horario preferido para retiro, instrucciones especiales..."
                         : "Instrucciones especiales para la entrega..."}
                       rows={3}
@@ -528,15 +480,10 @@ export default function CheckoutPage() {
                         />
                         <div className={styles.paymentContent}>
                           <div className={styles.paymentHeader}>
-                            <i className="fas fa-credit-card"></i>
+                            <span>💳</span>
                             <span>Webpay Plus</span>
                           </div>
-                          <p>Paga con tarjeta de crédito o débito</p>
-                          <div className={styles.paymentLogos}>
-                            <span className={styles.cardLogo}>VISA</span>
-                            <span className={styles.cardLogo}>MC</span>
-                            <span className={styles.cardLogo}>AMEX</span>
-                          </div>
+                          <p>Pago seguro con tarjeta de crédito o débito</p>
                         </div>
                       </label>
                       
@@ -550,14 +497,10 @@ export default function CheckoutPage() {
                         />
                         <div className={styles.paymentContent}>
                           <div className={styles.paymentHeader}>
-                            <i className="fas fa-mobile-alt"></i>
-                            <span>Mercado Pago</span>
+                            <span>💰</span>
+                            <span>MercadoPago</span>
                           </div>
-                          <p>Paga con tu cuenta de Mercado Pago</p>
-                          <div className={styles.paymentFeatures}>
-                            <span>• Pago en cuotas</span>
-                            <span>• Protección al comprador</span>
-                          </div>
+                          <p>Pago con tarjeta o cuenta MercadoPago</p>
                         </div>
                       </label>
                       
@@ -571,14 +514,10 @@ export default function CheckoutPage() {
                         />
                         <div className={styles.paymentContent}>
                           <div className={styles.paymentHeader}>
-                            <i className="fas fa-university"></i>
+                            <span>🏦</span>
                             <span>Transferencia Bancaria</span>
                           </div>
-                          <p>Transfiere directamente a nuestra cuenta</p>
-                          <div className={styles.paymentFeatures}>
-                            <span>• Sin comisiones adicionales</span>
-                            <span>• Confirmación manual</span>
-                          </div>
+                          <p>Transferencia directa a cuenta bancaria</p>
                         </div>
                       </label>
                     </div>
@@ -639,42 +578,17 @@ export default function CheckoutPage() {
                   
                   {paymentInfo.method === 'transfer' && (
                     <div className={styles.transferInfo}>
-                      <h3>Datos para Transferencia</h3>
-                      <div className={styles.bankInfo}>
-                        <div className={styles.bankDetails}>
-                          <h4>Banco Estado</h4>
-                          <div className={styles.accountInfo}>
-                            <div className={styles.infoRow}>
-                              <span className={styles.label}>Tipo de Cuenta:</span>
-                              <span>Cuenta Corriente</span>
-                            </div>
-                            <div className={styles.infoRow}>
-                              <span className={styles.label}>Número de Cuenta:</span>
-                              <span>12345678-9</span>
-                            </div>
-                            <div className={styles.infoRow}>
-                              <span className={styles.label}>RUT:</span>
-                              <span>12.345.678-9</span>
-                            </div>
-                            <div className={styles.infoRow}>
-                              <span className={styles.label}>Titular:</span>
-                              <span>Frutos Secos Premium SpA</span>
-                            </div>
-                            <div className={styles.infoRow}>
-                              <span className={styles.label}>Email:</span>
-                              <span>ventas@frutossecos.cl</span>
-                            </div>
-                          </div>
-                        </div>
+                      <h3>Información para Transferencia</h3>
+                      <div className={styles.bankDetails}>
+                        <p><strong>Banco:</strong> Banco Estado</p>
+                        <p><strong>Tipo de cuenta:</strong> Cuenta Corriente</p>
+                        <p><strong>Número de cuenta:</strong> 12345678-9</p>
+                        <p><strong>RUT:</strong> 12.345.678-9</p>
+                        <p><strong>Nombre:</strong> Frutos Secos Premium SpA</p>
+                        <p><strong>Email:</strong> transferencias@frutossecos.cl</p>
                       </div>
-                      <div className={styles.transferInstructions}>
-                        <h4>Instrucciones:</h4>
-                        <ol>
-                          <li>Realiza la transferencia por el monto total: <strong>${total.toLocaleString('es-CL')}</strong></li>
-                          <li>Envía el comprobante de transferencia a: <strong>ventas@frutossecos.cl</strong></li>
-                          <li>Incluye tu número de pedido en el asunto del email</li>
-                          <li>Procesaremos tu pedido una vez confirmado el pago</li>
-                        </ol>
+                      <div className={styles.transferNote}>
+                        <p><strong>Importante:</strong> Envía el comprobante de transferencia al email indicado con tu número de pedido.</p>
                       </div>
                     </div>
                   )}
@@ -688,10 +602,15 @@ export default function CheckoutPage() {
               
               <div className={styles.summaryItems}>
                 {cartItems.map(item => (
-                  <div key={item.id} className={styles.summaryItem}>
-                    <span className={styles.itemName}>{item.name} ({item.weight})</span>
-                    <span className={styles.itemQuantity}>x{item.quantity}</span>
-                    <span className={styles.itemPrice}>${(item.price * item.quantity).toLocaleString('es-CL')}</span>
+                  <div key={`summary-${item.productId}-${item.weight}`} className={styles.summaryItem}>
+                    <div className={styles.itemInfo}>
+                      <span className={styles.itemName}>{item.name}</span>
+                      <span className={styles.itemWeight}>{item.weight}g</span>
+                      <span className={styles.itemQuantity}>x{item.quantity}</span>
+                    </div>
+                    <span className={styles.itemPrice}>
+                      ${(item.price * item.quantity).toLocaleString('es-CL')}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -726,8 +645,7 @@ export default function CheckoutPage() {
               <div className={styles.checkoutActions}>
                 {currentStep > 1 && (
                   <button onClick={prevStep} className={styles.prevBtn}>
-                    <i className="fas fa-arrow-left"></i>
-                    Anterior
+                    ← Anterior
                   </button>
                 )}
                 
@@ -737,24 +655,21 @@ export default function CheckoutPage() {
                     className={styles.nextBtn}
                     disabled={!validateStep(currentStep)}
                   >
-                    Siguiente
-                    <i className="fas fa-arrow-right"></i>
+                    Siguiente →
                   </button>
                 ) : (
                   <button 
-                    onClick={completeOrder} 
+                    onClick={completeOrder}
                     className={styles.completeBtn}
                     disabled={!validateStep(3)}
                   >
-                    <i className="fas fa-credit-card"></i>
-                    Completar Pedido
+                    💳 Completar Pedido
                   </button>
                 )}
               </div>
               
               <button onClick={goBackToCart} className={styles.backToCartBtn}>
-                <i className="fas fa-shopping-cart"></i>
-                Volver al carrito
+                🛒 Volver al carrito
               </button>
             </div>
           </div>

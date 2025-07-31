@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+
+import { useAuthHandler } from '../../../hooks/useAuthHandler';
+import { toast } from 'react-hot-toast';
 import styles from '../productos.module.css';
 
 interface PriceByWeight {
@@ -27,13 +30,11 @@ interface ProductForm {
   category: string;
   categories: string[];
   featured: boolean;
-  // ✅ NUEVOS CAMPOS PARA CARRUSELES
   isAdvertisement: boolean;
   isMainCarousel: boolean;
   discount: number;
 }
 
-// ✅ CATEGORÍAS ACTUALIZADAS
 const categories = [
   'Frutos Secos',
   'Frutas Deshidratadas',
@@ -48,6 +49,7 @@ const categories = [
 
 export default function CrearProducto() {
   const router = useRouter();
+  const { makeAuthenticatedRequest } = useAuthHandler();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<ProductForm>({
     name: '',
@@ -63,11 +65,11 @@ export default function CrearProducto() {
     category: 'Frutos Secos',
     categories: ['Frutos Secos'],
     featured: false,
-    // ✅ NUEVOS CAMPOS INICIALIZADOS
     isAdvertisement: false,
     isMainCarousel: false,
     discount: 0
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // ✅ MANEJAR SELECCIÓN MÚLTIPLE DE CATEGORÍAS
   const handleCategoryChange = (category: string, isChecked: boolean) => {
@@ -97,8 +99,6 @@ export default function CrearProducto() {
     { value: 500, label: '500g' },
     { value: 1000, label: '1kg' }
   ];
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // ✅ CALCULAR PRECIOS AUTOMÁTICAMENTE
   const calculatePrices = (pricePerKilo: number) => {
@@ -229,18 +229,15 @@ export default function CrearProducto() {
       newErrors.pricePerKilo = 'El precio por kilo debe ser mayor a 0';
     }
   
-    // ✅ VALIDAR CATEGORÍAS MÚLTIPLES
     if (formData.categories.length === 0) {
       newErrors.categories = 'Debe seleccionar al menos una categoría';
     }
   
-    // Validar que al menos un peso tenga stock
     const hasStock = formData.pricesByWeight.some(p => p.stock > 0);
     if (!hasStock) {
       newErrors.stock = 'Debe especificar stock para al menos un peso';
     }
   
-    // Validar imágenes
     if (formData.images.length === 0) {
       newErrors.images = 'Debe subir al menos una imagen';
     }
@@ -253,7 +250,7 @@ export default function CrearProducto() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ SUBIR MÚLTIPLES IMÁGENES Y CREAR PRODUCTO
+  // ✅ FUNCIÓN DE SUBMIT ACTUALIZADA CON MANEJO DE AUTH
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -264,14 +261,7 @@ export default function CrearProducto() {
     setLoading(true);
 
     try {
-      const adminToken = localStorage.getItem('admin-token');
-      
-      if (!adminToken) {
-        router.push('/admin/login');
-        return;
-      }
-
-      // ✅ SUBIR TODAS LAS IMÁGENES
+      // ✅ SUBIR TODAS LAS IMÁGENES CON MANEJO DE AUTH
       const uploadedImages = [];
       
       for (const imageData of formData.images) {
@@ -279,30 +269,34 @@ export default function CrearProducto() {
         formDataUpload.append('image', imageData.file);
         formDataUpload.append('productName', formData.name);
 
-        const uploadResponse = await fetch('/api/upload/product-image', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${adminToken}`
-          },
-          body: formDataUpload
-        });
-
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          uploadedImages.push({
-            url: uploadData.imageUrl,
-            originalName: imageData.file.name,
-            size: imageData.file.size,
-            mimeType: imageData.file.type,
-            uploadDate: new Date(),
-            isPrimary: imageData.isPrimary
+        try {
+          const uploadResponse = await makeAuthenticatedRequest('/api/upload/product-image', {
+            method: 'POST',
+            body: formDataUpload
           });
-        } else {
-          throw new Error(`Error al subir imagen: ${imageData.file.name}`);
+
+          if (uploadResponse.ok) {
+            const uploadData = await uploadResponse.json();
+            uploadedImages.push({
+              url: uploadData.imageUrl,
+              originalName: imageData.file.name,
+              size: imageData.file.size,
+              mimeType: imageData.file.type,
+              uploadDate: new Date(),
+              isPrimary: imageData.isPrimary
+            });
+          } else {
+            throw new Error(`Error al subir imagen: ${imageData.file.name}`);
+          }
+        } catch (error) {
+          if (error instanceof Error && error.message === 'Authentication failed') {
+            return; // El hook ya manejó la redirección
+          }
+          throw error;
         }
       }
 
-      // ✅ CREAR PRODUCTO CON NUEVOS CAMPOS
+      // ✅ CREAR PRODUCTO CON MANEJO DE AUTH
       const productData = {
         name: formData.name,
         description: formData.description,
@@ -312,30 +306,36 @@ export default function CrearProducto() {
         category: formData.category,
         categories: formData.categories,
         featured: formData.featured,
-        // ✅ NUEVOS CAMPOS PARA CARRUSELES
         isAdvertisement: formData.isAdvertisement,
         isMainCarousel: formData.isMainCarousel,
         discount: formData.discount
       };
 
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
-        },
-        body: JSON.stringify(productData)
-      });
+      try {
+        const response = await makeAuthenticatedRequest('/api/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productData)
+        });
 
-      if (response.ok) {
-        router.push('/admin/productos');
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'No se pudo crear el producto'}`);
+        if (response.ok) {
+          toast.success('✅ Producto creado exitosamente');
+          router.push('/admin/productos');
+        } else {
+          const errorData = await response.json();
+          toast.error(`Error: ${errorData.message || 'No se pudo crear el producto'}`);
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'Authentication failed') {
+          return; // El hook ya manejó la redirección
+        }
+        throw error;
       }
     } catch (error) {
       console.error('Error creando producto:', error);
-      alert('Error al crear el producto');
+      toast.error('Error al crear el producto');
     } finally {
       setLoading(false);
     }

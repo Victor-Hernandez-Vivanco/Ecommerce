@@ -225,8 +225,9 @@ export default function ProductosAdmin() {
             <Link href="/admin/dashboard" className={styles.backBtn}>
               ← Volver al Dashboard
             </Link>
-            <h1>📦 Gestión de Productos</h1>
+            
           </div>
+          <div><h1>Gestión de Productos</h1></div>
           <Link href="/admin/productos/crear" className={styles.createBtn}>
             ➕ Crear Producto
           </Link>
@@ -300,10 +301,12 @@ export default function ProductosAdmin() {
             </div>
           ) : (
             <div className={styles.productsList}>
-              {/* ✅ ENCABEZADO DE LA TABLA */}
+              {/* ✅ ENCABEZADO DE LA TABLA REORGANIZADO */}
               <div className={styles.listHeader}>
                 <div className={styles.headerCell}>Imagen</div>
+                <div className={styles.headerCell}>ID</div>
                 <div className={styles.headerCell}>Producto</div>
+                <div className={styles.headerCell}>Descripción</div>
                 <div className={styles.headerCell}>Categorías</div>
                 <div className={styles.headerCell}>Precio</div>
                 <div className={styles.headerCell}>Stock</div>
@@ -311,7 +314,7 @@ export default function ProductosAdmin() {
                 <div className={styles.headerCell}>Acciones</div>
               </div>
 
-              {/* ✅ FILAS DE PRODUCTOS */}
+              {/* ✅ FILAS DE PRODUCTOS REORGANIZADAS */}
               {filteredProducts.map(product => {
                 const stock = getProductStock(product);
                 const isLowStock = stock <= 5;
@@ -344,17 +347,29 @@ export default function ProductosAdmin() {
                       </div>
                     </div>
 
-                    {/* Información del producto */}
+                    {/* ID */}
                     <div className={styles.listCell}>
-                      <div className={styles.productDetails}>
+                      <div className={styles.productId}>
+                        <span className={styles.idText}>ID: {product._id.slice(-8)}</span>
+                      </div>
+                    </div>
+
+                    {/* Nombre del producto */}
+                    <div className={styles.listCell}>
+                      <div className={styles.productName}>
                         <h3 className={styles.productNameList}>{product.name}</h3>
-                        <p className={styles.productDescription}>
-                          {product.description.length > 80 
-                            ? `${product.description.substring(0, 80)}...` 
+                      </div>
+                    </div>
+
+                    {/* Descripción */}
+                    <div className={styles.listCell}>
+                      <div className={styles.productDescription}>
+                        <p className={styles.descriptionText}>
+                          {product.description.length > 60 
+                            ? `${product.description.substring(0, 60)}...` 
                             : product.description
                           }
                         </p>
-                        <span className={styles.productId}>ID: {product._id}</span>
                       </div>
                     </div>
 
@@ -389,19 +404,19 @@ export default function ProductosAdmin() {
                     <div className={styles.listCell}>
                       <div className={styles.statusBadges}>
                         {product.featured && (
-                          <span className={styles.featuredBadgeList}>⭐ Destacado</span>
+                          <span className={styles.featuredBadgeList}>Destacado</span>
                         )}
                         {product.isAdvertisement && (
-                          <span className={styles.adBadge}>📢 Publicidad</span>
+                          <span className={styles.adBadge}>Publicidad</span>
                         )}
                         {product.isMainCarousel && (
-                          <span className={styles.carouselBadge}>🎠 Carrusel</span>
+                          <span className={styles.carouselBadge}>Carrusel</span>
                         )}
                         {isLowStock && !isOutOfStock && (
-                          <span className={styles.lowStockBadgeList}>⚠️ Stock Bajo</span>
+                          <span className={styles.lowStockBadgeList}>Stock Bajo</span>
                         )}
                         {isOutOfStock && (
-                          <span className={styles.outOfStockBadge}>❌ Agotado</span>
+                          <span className={styles.outOfStockBadge}>Agotado</span>
                         )}
                       </div>
                     </div>
@@ -411,17 +426,17 @@ export default function ProductosAdmin() {
                       <div className={styles.actionsList}>
                         <button
                           onClick={() => toggleFeatured(product)}
-                          className={`${styles.actionBtnList} ${
-                            product.featured ? styles.featuredActive : styles.featuredInactive
+                          className={`${styles.actionBtn} ${
+                            product.featured ? styles.featured : styles.notFeatured
                           }`}
                           title={product.featured ? 'Quitar de destacados' : 'Marcar como destacado'}
                         >
-                          {product.featured ? '⭐' : '☆'}
+                          ⭐
                         </button>
                         
                         <Link
                           href={`/admin/productos/editar/${product._id}`}
-                          className={`${styles.actionBtnList} ${styles.editBtnList}`}
+                          className={`${styles.actionBtn} ${styles.editBtn}`}
                           title="Editar producto"
                         >
                           ✏️
@@ -429,7 +444,7 @@ export default function ProductosAdmin() {
                         
                         <button
                           onClick={() => handleDeleteProduct(product)}
-                          className={`${styles.actionBtnList} ${styles.deleteBtnList}`}
+                          className={`${styles.actionBtn} ${styles.deleteBtn}`}
                           title="Eliminar producto"
                         >
                           🗑️
