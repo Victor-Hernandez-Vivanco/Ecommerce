@@ -22,18 +22,20 @@ const features = [
 
 export default function Features() {
   return (
-    <div className={styles.featuresContainer}>
-      <div className={styles.featuresGrid}>
-        {features.map((feature, index) => (
-          <div key={index} className={styles.featureCard}>
-            <div className={styles.iconWrapper}>
-              <i className={feature.icon}></i>
+    <section className={styles.featuresSection}>
+      <div className={styles.featuresContainer}>
+        <div className={styles.featuresGrid}>
+          {features.map((feature, index) => (
+            <div key={index} className={styles.featureCard}>
+              <div className={styles.iconWrapper}>
+                <i className={feature.icon}></i>
+              </div>
+              <h3 className={styles.featureTitle}>{feature.title}</h3>
+              <p className={styles.featureDescription}>{feature.description}</p>
             </div>
-            <h3 className={styles.featureTitle}>{feature.title}</h3>
-            <p className={styles.featureDescription}>{feature.description}</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   )
 }

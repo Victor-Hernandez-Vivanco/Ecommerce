@@ -231,6 +231,19 @@ export default function AdminDashboard() {
                 <span>✓ Análisis de stock</span>
               </div>
             </div>
+            
+            <Link href="/admin/categorias" className={`${styles.actionCard} ${styles.primaryAction}`}>
+              <div className={styles.actionHeader}>
+                <span className={styles.actionBadge}>Nuevo</span>
+              </div>
+              <h3>Gestionar Categorías</h3>
+              <p>Administra las imágenes de las categorías:</p>
+              <div className={styles.actionFeatures}>
+                <span>✓ Subir imágenes</span>
+                <span>✓ Gestionar colores</span>
+                <span>✓ Vista previa</span>
+              </div>
+            </Link>
           </div>
         </section>
 
@@ -256,6 +269,11 @@ export default function AdminDashboard() {
             <Link href="/admin/carrusel" className={styles.quickAction}>
               <div className={styles.quickActionIcon}>🖼️</div>
               <span>Ver Carrusel</span>
+            </Link>
+            
+            <Link href="/admin/categorias" className={styles.quickAction}>
+              <div className={styles.quickActionIcon}>🏷️</div>
+              <span>Gestionar Categorías</span>
             </Link>
           </div>
         </section>

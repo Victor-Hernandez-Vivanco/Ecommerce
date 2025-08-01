@@ -1,21 +1,29 @@
-/* Variables CSS */
+/* Variables CSS - Paleta Púrpura Elegante (Inspirada en Piwén) */
 :root {
-  /* Colores */
-  --primary-color: #8B4513;
-  --primary-dark: #654321;
-  --primary-light: #D2B48C;
-  --secondary-color: #228B22;
-  --secondary-dark: #006400;
-  --accent-color: #FF8C00;
+  /* Colores Principales */
+  --primary-color: #8B4A9C;
+  --primary-dark: #6B3A7C;
+  --primary-light: #E1BEE7;
+  
+  /* Colores Secundarios */
+  --secondary-color: #4CAF50;
+  --secondary-dark: #388E3C;
+  --accent-color: #FF9800;
+  
+  /* Colores de Fondo */
   --background-color: #FAFAFA;
   --surface-color: #FFFFFF;
+  
+  /* Colores de Texto */
   --text-primary: #2C2C2C;
   --text-secondary: #666666;
   --text-light: #999999;
+  
+  /* Colores de Borde y Sombra */
   --border-color: #E0E0E0;
-  --shadow-light: rgba(0, 0, 0, 0.1);
-  --shadow-medium: rgba(0, 0, 0, 0.15);
-  --shadow-dark: rgba(0, 0, 0, 0.25);
+  --shadow-light: rgba(139, 74, 156, 0.1);
+  --shadow-medium: rgba(139, 74, 156, 0.15);
+  --shadow-dark: rgba(139, 74, 156, 0.25);
   
   /* Tipografía */
   --font-family: var(--font-poppins), sans-serif;
@@ -47,6 +55,11 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease;
+  
+  /* Gradientes */
+  --gradient-primary: linear-gradient(135deg, #8B4A9C 0%, #6B3A7C 100%);
+  --gradient-secondary: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  --gradient-background: linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 100%);
 }
 
 /* Reset y estilos base */
@@ -109,4 +122,81 @@ body {
 .btn-secondary:hover {
   background-color: var(--primary-color);
   color: white;
+}
+
+/* Badges de descuento estilo Piwén */
+.discount-badge {
+  background: var(--secondary-color);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Botones de acción estilo Piwén */
+.btn-add-cart {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-add-cart:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--shadow-medium);
+}
+
+/* Cards de producto estilo Piwén */
+.product-card {
+  background: var(--surface-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 2px 8px var(--shadow-light);
+  transition: all var(--transition-normal);
+  overflow: hidden;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px var(--shadow-medium);
+}
+
+/* Estados de éxito y error */
+.success {
+  background: var(--secondary-color);
+  color: white;
+}
+
+.error {
+  background: #f44336;
+  color: white;
+}
+
+.warning {
+  background: var(--accent-color);
+  color: white;
+}
+
+/* Efectos de hover para enlaces */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--primary-dark);
 }

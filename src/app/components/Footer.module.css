@@ -2,7 +2,7 @@
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   color: var(--text-primary, #2C2C2C);
   padding: 10px 0 5px; /* Reducido de 60px 0 20px */
-  margin-top: 20px; /* Reducido de 80px */
+  margin-top: none; /* Reducido de 80px */
   border-top: 1px solid var(--border-color, #E0E0E0);
 }
 

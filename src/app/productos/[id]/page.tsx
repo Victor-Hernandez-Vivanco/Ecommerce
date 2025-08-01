@@ -2,11 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import styles from './producto.module.css'
 import { useCart } from '../../context/CartContext'
+// ✅ NUEVAS IMPORTACIONES PARA REACT ICONS
+import { FaWhatsapp, FaFacebookF, FaChevronLeft, FaChevronRight, FaTimes, FaInstagram } from 'react-icons/fa'
+import { FaXTwitter } from 'react-icons/fa6'
 
 // ✅ INTERFAZ ACTUALIZADA PARA EL NUEVO MODELO
 interface Product {
@@ -196,7 +200,7 @@ export default function ProductoPage() {
     return []
   }
 
-  // ✅ FUNCIÓN MEMOIZADA PARA CARGAR PRODUCTOS RECOMENDADOS - OPCIÓN 2
+  // ✅ FUNCIÓN MEMOIZADA PARA CARGAR Los Favoritos de Frutos Secos Premium - OPCIÓN 2
   const loadRecommendedProducts = useCallback(async () => {
     if (!product) return
     
@@ -211,7 +215,7 @@ export default function ProductoPage() {
         console.log('✅ Productos para carrusel:', data)
       }
     } catch (error) {
-      console.error('Error cargando productos recomendados:', error)
+      console.error('Error cargando Los Favoritos de Frutos Secos Premium:', error)
     } finally {
       setLoadingRecommended(false)
     }
@@ -413,6 +417,7 @@ export default function ProductoPage() {
                       alt={product.name}
                       fill
                       style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 768px) 100vw, 50vw"
                       onLoadingComplete={() => setIsImageLoading(false)}
                       onLoadStart={() => setIsImageLoading(true)}
                       onError={(e) => {
@@ -442,14 +447,14 @@ export default function ProductoPage() {
                         onClick={prevImage}
                         aria-label="Imagen anterior"
                       >
-                        <i className="fas fa-chevron-left"></i>
+                        <FaChevronLeft />
                       </button>
                       <button 
                         className={`${styles.navArrow} ${styles.navArrowRight}`}
                         onClick={nextImage}
                         aria-label="Imagen siguiente"
                       >
-                        <i className="fas fa-chevron-right"></i>
+                        <FaChevronRight />
                       </button>
                     </>
                   )}
@@ -570,75 +575,145 @@ export default function ProductoPage() {
                       >
                         {isOutOfStock ? 'Producto Agotado' : 'Agregar al carrito'}
                       </button>
-                      
-                      {/* ✅ BOTONES CONDICIONALMENTE VISIBLES */}
-                      {showCartOptions && (
-                        <div className={styles.cartActionsInline}>
-                          <button onClick={continueShopping} className={styles.continueShoppingBtn}>
-                            <i className="fas fa-shopping-bag"></i>
-                            Seguir Comprando
-                          </button>
-                          <button onClick={goToCart} className={styles.goToCartBtn}>
-                            <i className="fas fa-shopping-cart"></i>
-                            Ir al Carrito
-                          </button>
-                        </div>
-                      )}
                     </div>
+                  </div>
+                )}
+
+                {/* ✅ BOTONES SIEMPRE VISIBLES */}
+                <div className={styles.actionButtons}>
+                  <button 
+                    onClick={continueShopping}
+                    className={styles.continueShoppingBtn}
+                  >
+                    <i className="fas fa-arrow-left"></i>
+                    Seguir Comprando
+                  </button>
+                  <button 
+                    onClick={goToCart}
+                    className={styles.goToCartBtn}
+                  >
+                    <i className="fas fa-shopping-cart"></i>
+                    Ir al Carrito
+                  </button>
+                </div>
+                
+                {/* ✅ MENSAJE DE ÉXITO CONDICIONAL */}
+                {showCartOptions && (
+                  <div className={styles.successActions}>
+                    <p className={styles.successText}>¡Producto agregado exitosamente!</p>
                   </div>
                 )}
 
                 <div className={styles.productDescription}>
                   <p>{product.description}</p>
                 </div>
-
+                {/* ✅ SECCIÓN DE COMPARTIR ACTUALIZADA PARA COINCIDIR CON EL FOOTER */}
                 <div className={styles.shareSection}>
-                  <span>Compartir en:</span>
-                  <div className={styles.socialButtons}>
-                    <button className={styles.socialBtn}><i className="fab fa-facebook"></i></button>
-                    <button className={styles.socialBtn}><i className="fab fa-twitter"></i></button>
-                    <button className={styles.socialBtn}><i className="fab fa-pinterest"></i></button>
-                    <button className={styles.socialBtn}><i className="fab fa-tumblr"></i></button>
-                    <button className={styles.socialBtn}><i className="fab fa-linkedin"></i></button>
-                    <button className={styles.socialBtn}><i className="fab fa-whatsapp"></i></button>
+                  <h3>Compartir producto</h3>
+                  <div className={styles.shareButtons}>
+                    <a 
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${styles.shareBtn} ${styles.facebook}`}
+                      title="Compartir en Facebook"
+                    >
+                      <FaFacebookF />
+                    </a>
+                    <a 
+                      href={`https://instagram.com/frutossecoschile`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${styles.shareBtn} ${styles.instagram}`}
+                      title="Seguir en Instagram"
+                    >
+                      <FaInstagram />
+                    </a>
+                    <a 
+                      href={`https://x.com/intent/tweet?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(`Mira este producto: ${product.name}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${styles.shareBtn} ${styles.xTwitter}`}
+                      title="Compartir en X"
+                    >
+                      <FaXTwitter />
+                    </a>
+                    <a 
+                      href={`https://wa.me/?text=${encodeURIComponent(`Mira este producto: ${product.name} ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${styles.shareBtn} ${styles.whatsapp}`}
+                      title="Compartir en WhatsApp"
+                    >
+                      <FaWhatsapp />
+                    </a>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ✅ MODAL DE ZOOM */}
+          {/* ✅ MODAL DE ZOOM CON PERSISTENCIA */}
           {showZoomModal && (
-            <div 
-              className={styles.zoomModal}
-              onClick={() => setShowZoomModal(false)}
-            >
-              <div className={styles.zoomModalContent}>
+            <div className={styles.zoomModal}>
+              <div className={styles.zoomContainer}>
+                {/* ✅ BOTÓN CERRAR - ÚNICA FORMA DE CERRAR EL MODAL */}
                 <button 
-                  className={styles.zoomCloseBtn}
+                  className={styles.closeZoomBtn}
                   onClick={() => setShowZoomModal(false)}
+                  aria-label="Cerrar vista ampliada"
                 >
-                  <i className="fas fa-times"></i>
+                  <FaTimes />
                 </button>
-                
+
+                {/* ✅ IMAGEN CON FLECHAS DE NAVEGACIÓN */}
                 <div className={styles.zoomImageContainer}>
                   <Image
                     src={getCurrentImage()}
                     alt={product.name}
                     fill
-                    sizes="90vw"
                     style={{ objectFit: 'contain' }}
+                    sizes="90vw"
                     onError={(e) => {
-                      console.error('Error loading zoom image:', e)
-                      e.currentTarget.src = '/placeholder-product.jpg'
+                      const target = e.target as HTMLImageElement
+                      target.src = '/placeholder-product.jpg'
                     }}
                   />
+                  
+                  {/* ✅ FLECHAS DE NAVEGACIÓN EN EL MODAL */}
+                  {getAllImages(product).length > 1 && (
+                    <>
+                      <button 
+                        className={`${styles.zoomNavArrow} ${styles.zoomNavArrowLeft}`}
+                        onClick={prevImage}
+                        aria-label="Imagen anterior"
+                      >
+                        <FaChevronLeft />
+                      </button>
+                      <button 
+                        className={`${styles.zoomNavArrow} ${styles.zoomNavArrowRight}`}
+                        onClick={nextImage}
+                        aria-label="Imagen siguiente"
+                      >
+                        <FaChevronRight />
+                      </button>
+                    </>
+                  )}
                 </div>
-                
-                {/* Indicador de imagen */}
+
+                {/* ✅ INDICADORES DE IMAGEN */}
                 {getAllImages(product).length > 1 && (
-                  <div className={styles.zoomImageIndicator}>
-                    {currentImageIndex + 1} / {getAllImages(product).length}
+                  <div className={styles.zoomIndicators}>
+                    {getAllImages(product).map((_, index) => (
+                      <button
+                        key={index}
+                        className={`${styles.zoomIndicator} ${
+                          index === currentImageIndex ? styles.zoomIndicatorActive : ''
+                        }`}
+                        onClick={() => selectImage(index)}
+                        aria-label={`Ir a imagen ${index + 1}`}
+                      />
+                    ))}
                   </div>
                 )}
               </div>
@@ -648,7 +723,15 @@ export default function ProductoPage() {
           {/* ✅ SECCIÓN DE PRODUCTOS RECOMENDADOS */}
           {recommendedProducts.length > 0 && (
             <section className={styles.recommendedSection}>
-              <h2 className={styles.recommendedTitle}>Productos Recomendados</h2>
+              <div className={styles.recommendedHeader}>
+                <h2 className={styles.recommendedTitle}>
+                  Los Favoritos de{' '}
+                  <Link href="/" className={styles.navLogo}>
+                    <i className="fas fa-seedling"></i>
+                    <span>Frutos Secos Premium</span>
+                  </Link>
+                </h2>
+              </div>
               
               {/* ✅ INDICADOR DE CARGA PARA PRODUCTOS RECOMENDADOS */}
               {loadingRecommended ? (
@@ -711,14 +794,14 @@ export default function ProductoPage() {
                         onClick={prevSlide}
                         disabled={currentSlide === 0}
                       >
-                        <i className="fas fa-chevron-left"></i>
+                        <FaChevronLeft />
                       </button>
                       <button 
                         className={`${styles.carouselArrow} ${styles.carouselArrowRight}`}
                         onClick={nextSlide}
                         disabled={currentSlide === totalSlides - 1}
                       >
-                        <i className="fas fa-chevron-right"></i>
+                        <FaChevronRight />
                       </button>
                       
                       <div className={styles.carouselDots}>

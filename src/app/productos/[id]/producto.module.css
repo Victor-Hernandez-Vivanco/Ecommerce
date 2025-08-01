@@ -54,23 +54,23 @@
 }
 
 /* ✅ SECCIÓN DE RATING */
-.ratingSection {
+/* .ratingSection {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
-}
+} */
 
-.stars {
+/* .stars {
   display: flex;
   gap: 2px;
-}
+} */
 
-.ratingText {
+/* .ratingText {
   font-size: 0.9rem;
   color: #666;
   font-weight: 500;
-}
+} */
 
 /* ✅ BADGE DE DISPONIBILIDAD */
 .stockBadge {
@@ -96,7 +96,7 @@
 
 /* ✅ SECCIÓN DE COMPARTIR */
 .shareSection {
-  margin-top: 30px;
+  margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #eee;
 }
@@ -106,6 +106,76 @@
   color: #666;
   margin-bottom: 10px;
   display: block;
+}
+
+/* ✅ ESTILOS PARA BOTONES DE COMPARTIR ACTUALIZADOS */
+.shareButtons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.shareBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+}
+
+/* ✅ ESTILOS DE REDES SOCIALES ACTUALIZADOS PARA COINCIDIR CON EL FOOTER */
+
+/* Facebook - Azul oficial #1877F2 */
+.shareBtn.facebook {
+  background-color: #1877F2;
+  color: white;
+}
+
+.shareBtn.facebook:hover {
+  background-color: #166FE5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(24, 119, 242, 0.3);
+}
+
+/* Instagram - Gradiente oficial */
+.shareBtn.instagram {
+  background: linear-gradient(45deg, #F58529, #DD2A7B, #8134AF, #515BD4);
+  color: white;
+}
+
+.shareBtn.instagram:hover {
+  background: linear-gradient(45deg, #E1751F, #C91F6B, #7129A0, #4A52C4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(245, 133, 41, 0.3);
+}
+
+/* X (Twitter) - Negro oficial #000000 */
+.shareBtn.xTwitter {
+  background-color: #000000;
+  color: white;
+}
+
+.shareBtn.xTwitter:hover {
+  background-color: #1a1a1a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* WhatsApp - Verde oficial #25D366 */
+.shareBtn.whatsapp {
+  background-color: #25D366;
+  color: white;
+}
+
+.shareBtn.whatsapp:hover {
+  background-color: #20BD5A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(37, 211, 102, 0.3);
 }
 
 .socialButtons {
@@ -172,14 +242,14 @@
 }
 
 .weightButton:hover {
-  border-color: #8B4513;
+  border-color: var(--secondary-color);
   background: #fff;
 }
 
 .weightButton.selected {
-  background: #8B4513;
+  background: var(--secondary-color);
   color: white;
-  border-color: #8B4513;
+  border-color: var(--secondary-color);
 }
 
 /* Información de peso en el precio */
@@ -232,7 +302,7 @@
   cursor: pointer !important;
   font-weight: 700 !important;
   font-size: 1.1rem !important;
-  color: #8B4513 !important;
+  color: var(--secondary-color) !important;
   transition: all 0.3s ease !important;
   width: 45px !important;
   height: 45px !important;
@@ -242,7 +312,7 @@
 }
 
 .quantityBtn:hover:not(:disabled) {
-  background: #8B4513 !important;
+  background: var(--secondary-color) !important;
   color: white !important;
 }
 
@@ -272,22 +342,31 @@
 
 /* ✅ BOTÓN AGREGAR AL CARRITO */
 .addToCartBtn {
-  background: #8B4513;
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
+  background: var(--primary-color) !important;
+  color: var(--surface-color) !important;
+  border: 2px solid var(--primary-color) !important;
+  padding: 12px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.3s ease !important;
+  font-size: 0.9rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: var(--shadow-small) !important;
   width: 100%;
   margin-bottom: 15px;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
 }
 
 .addToCartBtn:hover {
-  background: #654321;
+  background: var(--secondary-color) !important;
+  border-color: var(--secondary-color) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-medium) !important;
 }
 
 /* ✅ BOTONES DE CARRITO SIEMPRE VISIBLES */
@@ -300,9 +379,9 @@
 }
 
 .continueShoppingBtn {
-  background: #f8f9fa !important;
-  color: var(--text-primary, #2C2C2C) !important;
-  border: 2px solid #dee2e6 !important;
+  background: transparent !important;
+  color: var(--primary-color) !important;
+  border: 2px solid var(--primary-color) !important;
   padding: 12px 20px !important;
   border-radius: 8px !important;
   font-weight: 600 !important;
@@ -317,15 +396,16 @@
 }
 
 .continueShoppingBtn:hover {
-  background: #e9ecef !important;
-  border-color: #adb5bd !important;
+  background: var(--secondary-color) !important;
+  color: var(--surface-color) !important;
+  border-color: var(--secondary-color) !important;
   transform: translateY(-1px) !important;
 }
 
 .goToCartBtn {
-  background: var(--primary-color, #8B4513) !important;
-  color: white !important;
-  border: 2px solid var(--primary-color, #8B4513) !important;
+  background: var(--primary-color) !important;
+  color: var(--surface-color) !important;
+  border: 2px solid var(--primary-color) !important;
   padding: 12px 20px !important;
   border-radius: 8px !important;
   font-weight: 600 !important;
@@ -340,8 +420,8 @@
 }
 
 .goToCartBtn:hover {
-  background: var(--primary-dark, #654321) !important;
-  border-color: var(--primary-dark, #654321) !important;
+  background: var(--secondary-color) !important;
+  border-color: var(--secondary-color) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -426,7 +506,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: #8B4513;
+  color: var(--secondary-color);
   font-size: 2rem;
 }
 
@@ -445,7 +525,7 @@
   justify-content: center;
   cursor: pointer;
   font-size: 1.2rem;
-  color: #8B4513;
+  color:var(--secondary-color);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   z-index: 2;
@@ -491,15 +571,13 @@
   position: relative;
 }
 
-
-
 .thumbnail img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* ✅ MODAL DE ZOOM */
+/* ✅ ESTILOS PARA MODAL DE ZOOM */
 .zoomModal {
   position: fixed;
   top: 0;
@@ -511,8 +589,103 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  cursor: zoom-out;
-  animation: fadeInModal 0.3s ease;
+  padding: 20px;
+}
+
+.zoomContainer {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 800px;
+  height: 600px;
+}
+
+.closeZoomBtn {
+  position: absolute;
+  top: -50px;
+  right: 0;
+  background: var(--surface-color);
+  color: var(--text-primary);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1001;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.closeZoomBtn:hover {
+  background: var(--primary-color);
+  color: var(--surface-color);
+}
+
+.zoomImageContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.zoomNavArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--primary-color);
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  z-index: 1001;
+}
+
+.zoomNavArrowLeft {
+  left: 20px;
+}
+
+.zoomNavArrowRight {
+  right: 20px;
+}
+
+.zoomNavArrow:hover {
+  background: var(--primary-color);
+  color: var(--surface-color);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.zoomIndicators {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+
+.zoomIndicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.zoomIndicatorActive {
+  background: var(--primary-color);
 }
 
 @keyframes fadeInModal {
@@ -525,14 +698,6 @@
   max-width: 90vw;
   max-height: 90vh;
   cursor: default;
-}
-
-.zoomImageContainer {
-  position: relative;
-  width: 90vw;
-  height: 80vh;
-  max-width: 1200px;
-  max-height: 800px;
 }
 
 .zoomCloseBtn {
@@ -557,39 +722,6 @@
 .zoomCloseBtn:hover {
   background: white;
   transform: scale(1.1);
-}
-
-/* ✅ NAVEGACIÓN EN MODAL */
-.zoomNavArrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 1.5rem;
-  color: #333;
-  transition: all 0.3s ease;
-  z-index: 1001;
-}
-
-.zoomNavArrow:hover {
-  background: white;
-  transform: translateY(-50%) scale(1.1);
-}
-
-.zoomNavArrowLeft {
-  left: 20px;
-}
-
-.zoomNavArrowRight {
-  right: 20px;
 }
 
 /* ✅ INDICADOR DE IMAGEN */
@@ -660,12 +792,41 @@
   font-size: 2rem;
   font-weight: 700;
   color: #333;
-  margin-bottom: 8px;
+  margin: 0 auto 8px auto;
+  text-align: center;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .recommendedSubtitle {
   font-size: 1.1rem;
   color: #666;
+}
+
+.navLogo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 8px);
+  font-size: var(--font-size-xl, 1.25rem);
+  font-weight: 600;
+  color: var(--primary-color, #8B4513);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.navLogo:hover {
+  color: var(--secondary-color, #D2691E);
+  transform: translateY(-1px);
+}
+
+.navLogo i {
+  font-size: var(--font-size-2xl, 1.5rem);
+  color: var(--secondary-color, #D2691E);
 }
 
 .carouselContainer {
@@ -822,7 +983,7 @@
 }
 
 .indicator.active {
-  background: var(--primary-color, #8B4513);
+  background: var(--primary-color, var(--secondary-color));
 }
 
 .loadingContainer {
@@ -858,7 +1019,7 @@
 }
 
 .backBtn {
-  background: var(--primary-color, #8B4513);
+  background: var(--primary-color, var(--secondary-color));
   color: white;
   border: none;
   padding: 12px 24px;
@@ -870,14 +1031,14 @@
 }
 
 .backBtn:hover {
-  background: var(--primary-dark, #654321);
+  background: var(--primary-dark, var(--secondary-color));
   transform: translateY(-2px);
 }
 
 .backButton {
   background: none;
-  border: 2px solid var(--primary-color, #8B4513);
-  color: var(--primary-color, #8B4513);
+  border: 2px solid var(--primary-color, var(--secondary-color));
+  color: var(--primary-color, var(--secondary-color));
   padding: 8px 16px;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -891,7 +1052,7 @@
 }
 
 .backButton:hover {
-  background: var(--primary-color, #8B4513);
+  background: var(--primary-color, var(--secondary-color));
   color: white;
 }
 
@@ -900,7 +1061,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border-left-color: var(--primary-color, #8B4513);
+  border-left-color: var(--primary-color, var(--secondary-color));
   animation: spin 1s ease infinite;
   margin: 0 auto 15px;
 }
@@ -991,6 +1152,51 @@
   .carouselSlide {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  .carouselArrow {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .carouselArrowLeft {
+    left: -20px;
+  }
+  
+  .carouselArrowRight {
+    right: -20px;
+  }
+  
+  .recommendedImageContainer {
+    height: 150px;
+  }
+  
+  .recommendedInfo {
+    padding: 12px;
+  }
+  
+  .recommendedName {
+    font-size: 0.9rem;
+  }
+  
+  .recommendedPrice {
+    font-size: 1rem;
+  }
+  
+  .recommendedTitle {
+    font-size: 1.5rem;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.3;
+  }
+  
+  .navLogo {
+    font-size: 1rem;
+  }
+  
+  .navLogo i {
+    font-size: 1.2rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1003,165 +1209,23 @@
     height: 50px;
   }
   
-  .productContainer {
-    padding: 15px;
+  .thumbnailsWrapper {
+    gap: 6px;
+  }
+  
+  .productTitle {
+    font-size: 1.5rem;
+  }
+  
+  .mainPrice {
+    font-size: 1.6rem;
   }
   
   .carouselSlide {
     grid-template-columns: 1fr;
   }
-}
-
-/* ✅ CLASES FALTANTES PARA EL CARRUSEL */
-.carouselWrapper {
-  width: 100%;
-  overflow: hidden;
-}
-
-.recommendedCard {
-  border: 1px solid #eee;
-  border-radius: 8px;
-  overflow: hidden;
-  text-align: center;
-  transition: transform 0.3s, box-shadow 0.3s;
-  cursor: pointer;
-  background: white;
-}
-
-.recommendedCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.recommendedImageContainer {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-}
-
-.recommendedInfo {
-  padding: 15px;
-}
-
-.recommendedName {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: #333;
-  line-height: 1.3;
-}
-
-.recommendedPrice {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: var(--primary-color, #8B4513);
-  margin-bottom: 10px;
-}
-
-.recommendedDiscount {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: var(--primary-color, #8B4513);
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  z-index: 2;
-}
-
-/* Flechas del carrusel */
-.carouselArrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #ddd;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  color: #333;
-  z-index: 3;
-}
-
-.carouselArrow:hover {
-  background: #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  transform: translateY(-50%) scale(1.1);
-}
-
-.carouselArrow:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: translateY(-50%);
-}
-
-.carouselArrowLeft {
-  left: -25px;
-}
-
-.carouselArrowRight {
-  right: -25px;
-}
-
-/* Indicadores del carrusel */
-.carouselDots {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 30px;
-}
-
-.carouselDot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #ccc;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.carouselDot:hover {
-  background: #999;
-}
-
-.carouselDotActive {
-  background: var(--primary-color, #8B4513);
-  transform: scale(1.2);
-}
-
-/* Responsive para carrusel */
-@media (max-width: 768px) {
-  .carouselArrow {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
-  }
-
-  .carouselArrowLeft {
-    left: -20px;
-  }
-
-  .carouselArrowRight {
-    right: -20px;
-  }
-
-  .recommendedImageContainer {
-    height: 150px;
-  }
-}
-
-@media (max-width: 480px) {
-  .carouselArrow {
+  
+  .carouselBtn {
     width: 35px;
     height: 35px;
     font-size: 0.9rem;
@@ -1186,7 +1250,58 @@
   .recommendedPrice {
     font-size: 1rem;
   }
+  
+  .carouselArrow {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
+  
+  .carouselArrowLeft {
+    left: -15px;
+  }
+  
+  .carouselArrowRight {
+    right: -15px;
+  }
+  
+  .recommendedName {
+    font-size: 0.85rem;
+  }
+  
+  .recommendedPrice {
+    font-size: 0.95rem;
+  }
+  
+  .recommendedTitle {
+    font-size: 1.3rem;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .navLogo {
+    font-size: 0.9rem;
+  }
 }
+
+/* ✅ ESTILOS PARA BOTONES DE ACCIÓN */
+.actionButtons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.successActions {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.successText {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 .loadingRecommended {
   text-align: center;
   padding: 60px 20px;
@@ -1200,4 +1315,142 @@
   color: #666;
   font-size: 1.1rem;
   margin: 0;
+}
+
+/* ✅ ESTILOS FALTANTES PARA EL CARRUSEL DE PRODUCTOS RECOMENDADOS */
+
+.carouselWrapper {
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.recommendedCard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid #e9ecef;
+}
+
+.recommendedCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.recommendedImageContainer {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+}
+
+.recommendedDiscount {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px var(--secondary-color);
+}
+
+.recommendedInfo {
+  padding: 15px;
+  text-align: center;
+}
+
+.recommendedName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.recommendedPrice {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary-color, var(--secondary-color));
+  margin: 0;
+}
+
+/* ✅ FLECHAS DEL CARRUSEL */
+.carouselArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e9ecef;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--primary-color, var(--secondary-color));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.carouselArrow:hover:not(:disabled) {
+  background: var(--primary-color, var(--secondary-color));
+  color: white;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.carouselArrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.carouselArrowLeft {
+  left: -25px;
+}
+
+.carouselArrowRight {
+  right: -25px;
+}
+
+/* ✅ INDICADORES DEL CARRUSEL */
+.carouselDots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+}
+
+.carouselDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  background: #dee2e6;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carouselDot:hover {
+  background: #adb5bd;
+  transform: scale(1.2);
+}
+
+.carouselDotActive {
+  background: var(--primary-color, var(--secondary-color));
+  transform: scale(1.3);
 }

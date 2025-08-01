@@ -1,6 +1,6 @@
 .hero {
-  padding: 2.5rem 0; /* Reducido de 4rem */
-  background: linear-gradient(135deg, var(--background-color) 0%, #F5F5DC 100%);
+  padding: 1.5rem 0; /* Reducido de 4rem */
+  background: white;
   position: relative;
   overflow: hidden;
 }

@@ -44,7 +44,7 @@
 
 /* Estilos para los enlaces de navegación */
 .navLink {
-  color: #333333; /* Color gris oscuro en lugar de azul */
+  color: var(--primary-dark); /* Color gris oscuro en lugar de azul */
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
@@ -53,7 +53,7 @@
 }
 
 .navLink:hover {
-  color: #2d5a27; /* Verde oscuro al hacer hover */
+  color: var(--secondary-color)
 }
 
 .navLink::after {
@@ -63,7 +63,7 @@
   left: 50%;
   width: 0;
   height: 2px;
-  background-color: #2d5a27;
+  background-color: var(--secondary-color);
   transition: all 0.3s ease;
   transform: translateX(-50%);
 }
@@ -172,9 +172,10 @@
 }
 
 .loginBtn:hover {
-  background-color: var(--primary-color);
+  background-color: var(--secondary-color);
   color: white;
   transform: translateY(-2px);
+  border: 2px solid var(--secondary-color);
   box-shadow: 0 4px 12px var(--shadow-medium);
 }
 
