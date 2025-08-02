@@ -4,11 +4,13 @@
   --primary-color: #8B4A9C;
   --primary-dark: #6B3A7C;
   --primary-light: #E1BEE7;
+  --primary-black: #2C2C2C;
   
   /* Colores Secundarios */
   --secondary-color: #4CAF50;
   --secondary-dark: #388E3C;
   --accent-color: #FF9800;
+  --accent-dark: #E65100;
   
   /* Colores de Fondo */
   --background-color: #FAFAFA;

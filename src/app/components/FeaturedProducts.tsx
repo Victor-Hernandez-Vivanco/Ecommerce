@@ -31,6 +31,19 @@ interface WeightOption {
   label: string
 }
 
+// Mover SLIDES_TO_SHOW fuera del componente para evitar recreaciones
+const SLIDES_TO_SHOW = {
+  desktop: 3,
+  tablet: 2,
+  mobile: 1
+}
+const AUTO_PLAY_INTERVAL = 4000
+
+// Función para formatear precios en formato chileno
+const formatChileanPrice = (price: number): string => {
+  return price.toLocaleString('es-CL')
+}
+
 export default function FeaturedProducts() {
   const router = useRouter()
   const { addToCart } = useCart()
@@ -50,24 +63,45 @@ export default function FeaturedProducts() {
   const [selectedWeight, setSelectedWeight] = useState<WeightOption | null>(null)
   const [quantity, setQuantity] = useState(1)
 
-  // Configuración del carrusel
-  const SLIDES_TO_SHOW = {
-    desktop: 3,
-    tablet: 2,
-    mobile: 1
-  }
-  const AUTO_PLAY_INTERVAL = 4000
-
-  // Función para obtener cuántos slides mostrar según el viewport (usando useCallback)
+  // Función para obtener cuántos slides mostrar según el viewport
   const getSlidesToShow = useCallback(() => {
     if (typeof window === 'undefined') return SLIDES_TO_SHOW.desktop
     
     if (window.innerWidth <= 480) return SLIDES_TO_SHOW.mobile
     if (window.innerWidth <= 768) return SLIDES_TO_SHOW.tablet
     return SLIDES_TO_SHOW.desktop
-  }, [SLIDES_TO_SHOW.desktop, SLIDES_TO_SHOW.mobile, SLIDES_TO_SHOW.tablet])
+  }, [])
 
   const [slidesToShow, setSlidesToShow] = useState(SLIDES_TO_SHOW.desktop)
+
+  // Funciones de navegación del carrusel simplificadas
+  const nextSlide = useCallback(() => {
+    if (products.length <= slidesToShow) return
+    
+    setCurrentSlide(prev => {
+      const maxSlide = products.length - slidesToShow
+      return prev >= maxSlide ? 0 : prev + 1
+    })
+  }, [products.length, slidesToShow])
+
+  const prevSlide = useCallback(() => {
+    if (products.length <= slidesToShow) return
+    
+    setCurrentSlide(prev => {
+      const maxSlide = products.length - slidesToShow
+      return prev <= 0 ? maxSlide : prev - 1
+    })
+  }, [products.length, slidesToShow])
+
+  const goToSlide = useCallback((slideIndex: number) => {
+    if (products.length <= slidesToShow) return
+    
+    setCurrentSlide(slideIndex)
+    setIsAutoPlaying(false)
+    
+    // Reanudar auto-play después de 1 segundo
+    setTimeout(() => setIsAutoPlaying(true), 1000)
+  }, [products.length, slidesToShow])
 
   // Manejar resize de ventana
   useEffect(() => {
@@ -75,20 +109,22 @@ export default function FeaturedProducts() {
       setSlidesToShow(getSlidesToShow())
     }
 
-    handleResize() // Llamar inmediatamente
+    handleResize()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [getSlidesToShow])
+
+  // Resetear currentSlide cuando cambian los productos o slidesToShow
+  useEffect(() => {
+    setCurrentSlide(0)
+  }, [products.length, slidesToShow])
 
   // Auto-play del carrusel
   useEffect(() => {
     if (!isAutoPlaying || products.length <= slidesToShow) return
 
     autoPlayRef.current = setInterval(() => {
-      setCurrentSlide(prev => {
-        const maxSlide = Math.max(0, products.length - slidesToShow)
-        return prev >= maxSlide ? 0 : prev + 1
-      })
+      nextSlide()
     }, AUTO_PLAY_INTERVAL)
 
     return () => {
@@ -96,29 +132,7 @@ export default function FeaturedProducts() {
         clearInterval(autoPlayRef.current)
       }
     }
-  }, [isAutoPlaying, products.length, slidesToShow])
-
-  // Funciones de navegación del carrusel
-  const goToSlide = (slideIndex: number) => {
-    const maxSlide = Math.max(0, products.length - slidesToShow)
-    setCurrentSlide(Math.min(slideIndex, maxSlide))
-    setIsAutoPlaying(false)
-    
-    // Reanudar auto-play después de 5 segundos
-    setTimeout(() => setIsAutoPlaying(true), 5000)
-  }
-
-  const nextSlide = () => {
-    const maxSlide = Math.max(0, products.length - slidesToShow)
-    const nextIndex = currentSlide >= maxSlide ? 0 : currentSlide + 1
-    goToSlide(nextIndex)
-  }
-
-  const prevSlide = () => {
-    const maxSlide = Math.max(0, products.length - slidesToShow)
-    const prevIndex = currentSlide <= 0 ? maxSlide : currentSlide - 1
-    goToSlide(prevIndex)
-  }
+  }, [isAutoPlaying, products.length, slidesToShow, nextSlide])
 
   // Pausar/reanudar auto-play
   const handleMouseEnter = () => setIsAutoPlaying(false)
@@ -230,7 +244,7 @@ export default function FeaturedProducts() {
           
           if (allProductsResponse.ok) {
             const allProducts = await allProductsResponse.json()
-            setProducts(allProducts.slice(0, 8)) // Más productos para el carrusel
+            setProducts(allProducts.slice(0, 8))
           } else {
             setError('No se pudieron cargar los productos')
           }
@@ -281,12 +295,13 @@ export default function FeaturedProducts() {
     )
   }
 
+  // Calcular el número máximo de slides
+  const maxSlides = Math.max(0, products.length - slidesToShow)
+  const slideWidth = 100 / slidesToShow
+
   return (
     <section className={styles.featuredSection}>
       <div className={styles.container}>
-        {/* <h2 className={styles.title}>Productos Destacados</h2>
-        <p className={styles.subtitle}>Descubre nuestra selección premium de frutos secos</p> */}
-        
         {/* Carrusel de productos */}
         <div 
           className={styles.carouselContainer}
@@ -319,15 +334,15 @@ export default function FeaturedProducts() {
               ref={carouselRef}
               className={styles.carouselTrack}
               style={{
-                transform: `translateX(-${currentSlide * (100 / slidesToShow)}%)`,
-                width: `${(products.length / slidesToShow) * 100}%`
+                transform: `translateX(-${currentSlide * slideWidth}%)`,
+                transition: 'transform 0.5s ease-in-out'
               }}
             >
               {products.map((product) => (
                 <div 
-                  key={product._id} 
+                  key={product._id}
                   className={styles.carouselSlide}
-                  style={{ width: `${100 / products.length}%` }}
+                  style={{ width: `${slideWidth}%` }}
                 >
                   <div className={styles.productCard}>
                     <div className={styles.imageContainer}>
@@ -383,15 +398,15 @@ export default function FeaturedProducts() {
                           {product.discount && product.discount > 0 ? (
                             <>
                               <span className={styles.originalPrice}>
-                                ${getProductPrice(product).toLocaleString()}
+                                ${formatChileanPrice(getProductPrice(product))}
                               </span>
                               <span className={styles.discountPrice}>
-                                ${Math.round(getProductPrice(product) * (1 - product.discount / 100)).toLocaleString()}
+                                ${formatChileanPrice(Math.round(getProductPrice(product) * (1 - product.discount / 100)))}
                               </span>
                             </>
                           ) : (
                             <span className={styles.price}>
-                              ${getProductPrice(product).toLocaleString()} /100g
+                              ${formatChileanPrice(getProductPrice(product))}
                             </span>
                           )}
                         </div>
@@ -414,7 +429,7 @@ export default function FeaturedProducts() {
           {/* Indicadores de puntos */}
           {products.length > slidesToShow && (
             <div className={styles.carouselDots}>
-              {Array.from({ length: Math.ceil(products.length / slidesToShow) }).map((_, index) => (
+              {Array.from({ length: maxSlides + 1 }).map((_, index) => (
                 <button
                   key={index}
                   className={`${styles.carouselDot} ${currentSlide === index ? styles.carouselDotActive : ''}`}
@@ -436,7 +451,7 @@ export default function FeaturedProducts() {
       
       {/* Modal de vista rápida */}
       {showQuickView && quickViewProduct && (
-        <div className={styles.modalOverlay} onClick={closeQuickView}>
+        <div className={styles.modalOverlay}>
           <div className={styles.quickViewModal} onClick={(e) => e.stopPropagation()}>
             <button className={styles.closeBtn} onClick={closeQuickView}>
               ×
@@ -456,7 +471,7 @@ export default function FeaturedProducts() {
               <div className={styles.modalInfo}>
                 <h2 className={styles.modalTitle}>{quickViewProduct.name}</h2>
                 <div className={styles.modalPrice}>
-                  ${getCurrentPrice().toLocaleString('es-CL')}
+                  ${formatChileanPrice(getCurrentPrice())}
                   {selectedWeight && (
                     <span className={styles.weightInfo}> / {selectedWeight.weight}g</span>
                   )}

@@ -88,14 +88,17 @@ export default function ProductosPage() {
     return 0
   }
 
+  // ✅ FUNCIÓN MODIFICADA PARA FILTRAR OPCIONES SIN STOCK
   const getWeightOptions = (product: Product): WeightOption[] => {
     if (product.pricesByWeight && product.pricesByWeight.length > 0) {
-      return product.pricesByWeight.map(pw => ({
-        weight: pw.weight,
-        price: pw.price,
-        stock: pw.stock,
-        label: `${pw.weight}g`
-      }))
+      return product.pricesByWeight
+        .filter(pw => pw.stock > 0) // ✅ FILTRAR SOLO OPCIONES CON STOCK
+        .map(pw => ({
+          weight: pw.weight,
+          price: pw.price,
+          stock: pw.stock,
+          label: `${pw.weight}g`
+        }))
     }
     return []
   }
@@ -155,12 +158,16 @@ export default function ProductosPage() {
     return matchesCategory && matchesSearch && matchesPrice
   })
 
-  // ✅ FUNCIÓN PARA ABRIR VISTA RÁPIDA
+  // ✅ FUNCIÓN PARA ABRIR VISTA RÁPIDA MEJORADA
   const openQuickView = (product: Product) => {
     setQuickViewProduct(product)
     const weightOptions = getWeightOptions(product)
     if (weightOptions.length > 0) {
+      // ✅ SELECCIONAR LA PRIMERA OPCIÓN CON STOCK DISPONIBLE
       setSelectedWeight(weightOptions[0])
+    } else {
+      // ✅ SI NO HAY OPCIONES CON STOCK, NO SELECCIONAR NINGUNA
+      setSelectedWeight(null)
     }
     setQuantity(1)
     setShowQuickView(true)
@@ -178,10 +185,16 @@ export default function ProductosPage() {
     router.push(`/productos/${product._id}`)
   }
 
-  // ✅ FUNCIÓN addToCart CORREGIDA PARA USAR EL CONTEXTO
+  // ✅ FUNCIÓN addToCart MEJORADA CON VALIDACIÓN DE STOCK
   const addToCart = (product: Product, weight?: WeightOption | undefined, qty: number = 1) => {
     if (!weight) {
       console.warn('Cannot add to cart: no weight selected')
+      return
+    }
+    
+    // ✅ VALIDAR QUE LA OPCIÓN TENGA STOCK SUFICIENTE
+    if (weight.stock < qty) {
+      alert(`Stock insuficiente. Solo hay ${weight.stock} unidades disponibles.`)
       return
     }
     
@@ -449,7 +462,7 @@ export default function ProductosPage() {
       
       {/* Modal de Vista Rápida */}
       {showQuickView && quickViewProduct && (
-        <div className={styles.modalOverlay} onClick={closeQuickView}>
+        <div className={styles.modalOverlay}>
           <div className={styles.quickViewModal} onClick={(e) => e.stopPropagation()}>
             <button className={styles.closeBtn} onClick={closeQuickView}>
               ×
@@ -481,8 +494,8 @@ export default function ProductosPage() {
                   <strong>Categoría:</strong> {quickViewProduct.category}
                 </div>
                 
-                {/* Selector de peso */}
-                {getWeightOptions(quickViewProduct).length > 0 && (
+                {/* Selector de peso mejorado */}
+                {getWeightOptions(quickViewProduct).length > 0 ? (
                   <div className={styles.weightSelector}>
                     <label>Elige una opción:</label>
                     <select 
@@ -501,34 +514,42 @@ export default function ProductosPage() {
                       ))}
                     </select>
                   </div>
+                ) : (
+                  <div className={styles.noStockMessage}>
+                    <p>⚠️ Producto sin stock disponible</p>
+                  </div>
                 )}
                 
-                {/* Selector de cantidad */}
-                <div className={styles.quantitySelector}>
-                  <label>Cantidad:</label>
-                  <div className={styles.quantityControls}>
-                    <button 
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className={styles.quantityBtn}
-                    >
-                      -
-                    </button>
-                    <span className={styles.quantity}>{quantity}</span>
-                    <button 
-                      onClick={() => setQuantity(quantity + 1)}
-                      className={styles.quantityBtn}
-                    >
-                      +
-                    </button>
+                {/* Selector de cantidad mejorado */}
+                {selectedWeight && (
+                  <div className={styles.quantitySelector}>
+                    <label>Cantidad:</label>
+                    <div className={styles.quantityControls}>
+                      <button 
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className={styles.quantityBtn}
+                      >
+                        -
+                      </button>
+                      <span className={styles.quantity}>{quantity}</span>
+                      <button 
+                        onClick={() => setQuantity(Math.min(selectedWeight.stock, quantity + 1))}
+                        className={styles.quantityBtn}
+                        disabled={quantity >= selectedWeight.stock}
+                      >
+                        +
+                      </button>
+                    </div>
+                    <small>Stock disponible: {selectedWeight.stock}</small>
                   </div>
-                </div>
+                )}
                 
                 <button 
                   onClick={() => addToCart(quickViewProduct, selectedWeight || undefined, quantity)}
                   className={styles.modalAddToCartBtn}
-                  disabled={!selectedWeight}
+                  disabled={!selectedWeight || selectedWeight.stock === 0}
                 >
-                  AÑADIR AL CARRITO
+                  {selectedWeight && selectedWeight.stock > 0 ? 'AÑADIR AL CARRITO' : 'SIN STOCK'}
                 </button>
               </div>
             </div>

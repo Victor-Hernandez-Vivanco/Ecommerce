@@ -178,25 +178,20 @@ export default function ProductoPage() {
     return product.basePricePer100g || 0
   }
 
-  // ✅ FUNCIÓN HELPER MEJORADA PARA OBTENER OPCIONES DE PESO
+  // ✅ FUNCIÓN HELPER MEJORADA PARA OBTENER OPCIONES DE PESO - FILTRADA POR STOCK
   const getWeightOptions = (product: Product): WeightOption[] => {
     console.log('Product pricesByWeight:', product.pricesByWeight) // Debug
     if (product.pricesByWeight && product.pricesByWeight.length > 0) {
-      return product.pricesByWeight.map(option => ({
-        weight: option.weight,
-        price: option.price,
-        stock: option.stock || 999, // Valor por defecto si no hay stock
-        label: option.weight >= 1000 ? `${option.weight / 1000}kg` : `${option.weight}g`
-      }))
+      return product.pricesByWeight
+        .filter(option => option.stock > 0) // ✅ FILTRAR SOLO OPCIONES CON STOCK
+        .map(option => ({
+          weight: option.weight,
+          price: option.price,
+          stock: option.stock,
+          label: option.weight >= 1000 ? `${option.weight / 1000}kg` : `${option.weight}g`
+        }))
     }
-    // ✅ FALLBACK: Si no hay pricesByWeight, crear opciones básicas
-    if (product.basePricePer100g) {
-      return [
-        { weight: 100, price: product.basePricePer100g, stock: 999, label: '100g' },
-        { weight: 250, price: Math.round(product.basePricePer100g * 2.5), stock: 999, label: '250g' },
-        { weight: 500, price: Math.round(product.basePricePer100g * 5), stock: 999, label: '500g' }
-      ]
-    }
+    // ✅ FALLBACK: Si no hay pricesByWeight con stock, no crear opciones básicas
     return []
   }
 
@@ -231,16 +226,16 @@ export default function ProductoPage() {
         console.log('Producto cargado:', data) // Debug
         setProduct(data)
         
-        // ✅ CONFIGURAR PESO POR DEFECTO MEJORADO
+        // ✅ CONFIGURAR PESO POR DEFECTO MEJORADO - SOLO CON STOCK
         const weightOptions = getWeightOptions(data)
-        console.log('Weight options:', weightOptions) // Debug
+        console.log('Weight options with stock:', weightOptions) // Debug
         if (weightOptions.length > 0) {
           // Seleccionar la primera opción disponible con stock
-          const availableOption = weightOptions.find(option => option.stock > 0) || weightOptions[0]
-          setSelectedWeight(availableOption)
-          console.log('Selected weight:', availableOption) // Debug
+          setSelectedWeight(weightOptions[0])
+          console.log('Selected weight with stock:', weightOptions[0]) // Debug
         } else {
-          console.warn('No weight options available for product:', data.name)
+          console.warn('No weight options with stock available for product:', data.name)
+          setSelectedWeight(null)
         }
       } else {
         setProduct(null)
