@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link'; // ✅ AGREGAR ESTA IMPORTACIÓN
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -46,43 +47,43 @@ export default function LoginPage() {
         <div className={styles.loginBox}>
           <div className={styles.header}>
             <h1>🔐 Iniciar Sesión</h1>
-            <p>Accede a tu cuenta</p>
+            <p>Accede a tu cuenta para continuar</p>
           </div>
+
+          {error && (
+            <div className={styles.error}>
+              ❌ {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.inputGroup}>
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">📧 Email</label>
               <input
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                required
-                placeholder="tu@email.com"
                 className={styles.input}
+                placeholder="tu@email.com"
+                required
               />
             </div>
 
             <div className={styles.inputGroup}>
-              <label htmlFor="password">Contraseña</label>
+              <label htmlFor="password">🔒 Contraseña</label>
               <input
                 type="password"
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                required
-                placeholder="••••••••"
                 className={styles.input}
+                placeholder="••••••••"
+                required
               />
             </div>
-
-            {error && (
-              <div className={styles.error}>
-                ❌ {error}
-              </div>
-            )}
 
             <button
               type="submit"
@@ -95,7 +96,10 @@ export default function LoginPage() {
 
           <div className={styles.footer}>
             <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
-            <link href="/" className={styles.backLink}>← Volver al inicio</link>
+            {/* ✅ CAMBIO PRINCIPAL: <link> por <Link> */}
+            <Link href="/" className={styles.backLink}>
+              ← Volver al inicio
+            </Link>
           </div>
         </div>
       </div>

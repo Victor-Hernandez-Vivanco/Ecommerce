@@ -4,13 +4,14 @@ import Product from "@/models/Product";
 import { verifyAdminToken } from "@/lib/auth";
 
 // GET /api/products/[id] - Obtener producto por ID
+// ✅ FORMATO CORRECTO (Next.js 15)
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }  // ✅ CORRECTO
 ) {
   try {
     await connectDB();
-    const params = await context.params;
+    const params = await context.params;  // ✅ CORRECTO
     const product = await Product.findById(params.id);
 
     if (!product) {
@@ -31,9 +32,10 @@ export async function GET(
 }
 
 // PUT /api/products/[id] - Actualizar producto
+// PUT y DELETE también están correctos
 export async function PUT(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }  // ✅ CORRECTO
 ) {
   try {
     // Verificar autenticación de admin
@@ -47,7 +49,7 @@ export async function PUT(
 
     await connectDB();
     const body = await request.json();
-    const params = await context.params;
+    const params = await context.params;  // ✅ CORRECTO
 
     const product = await Product.findByIdAndUpdate(
       params.id,
@@ -75,7 +77,7 @@ export async function PUT(
 // DELETE /api/products/[id] - Eliminar producto
 export async function DELETE(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }  // ✅ CORRECTO
 ) {
   try {
     // Verificar autenticación de admin
@@ -88,7 +90,7 @@ export async function DELETE(
     }
 
     await connectDB();
-    const params = await context.params;
+    const params = await context.params;  // ✅ CORRECTO
 
     const product = await Product.findByIdAndDelete(params.id);
 
