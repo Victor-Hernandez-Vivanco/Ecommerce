@@ -1,38 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Product from "@/models/Product";
-import jwt from "jsonwebtoken";
-
-// Función para verificar token de admin
-const verifyAdminToken = (request: NextRequest) => {
-  const authHeader = request.headers.get("authorization");
-  const token = authHeader && authHeader.split(" ")[1];
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "tu_jwt_secret"
-    ) as { isAdmin: boolean };
-    return decoded.isAdmin ? decoded : null;
-  } catch {
-    return null;
-  }
-};
+import { verifyAdminToken } from "@/lib/auth";
 
 // GET /api/products/[id] - Obtener producto por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
-    // ✅ AWAIT params antes de usar sus propiedades
-    const { id } = await params;
-    const product = await Product.findById(id);
+    const params = await context.params;
+    const product = await Product.findById(params.id);
 
     if (!product) {
       return NextResponse.json(
@@ -54,7 +33,7 @@ export async function GET(
 // PUT /api/products/[id] - Actualizar producto
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación de admin
@@ -68,11 +47,10 @@ export async function PUT(
 
     await connectDB();
     const body = await request.json();
-    // ✅ AWAIT params antes de usar sus propiedades
-    const { id } = await params;
+    const params = await context.params;
 
     const product = await Product.findByIdAndUpdate(
-      id,
+      params.id,
       { $set: body },
       { new: true }
     );
@@ -97,7 +75,7 @@ export async function PUT(
 // DELETE /api/products/[id] - Eliminar producto
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación de admin
@@ -110,10 +88,9 @@ export async function DELETE(
     }
 
     await connectDB();
-    // ✅ AWAIT params antes de usar sus propiedades
-    const { id } = await params;
+    const params = await context.params;
 
-    const product = await Product.findByIdAndDelete(id);
+    const product = await Product.findByIdAndDelete(params.id);
 
     if (!product) {
       return NextResponse.json(
