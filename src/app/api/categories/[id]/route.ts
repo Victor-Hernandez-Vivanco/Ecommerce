@@ -5,10 +5,10 @@ import Category from "@/models/Category";
 // PUT - Actualizar categoría
 export async function PUT(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params;
+    const resolvedParams = await params;
     const adminToken = request.headers
       .get("authorization")
       ?.replace("Bearer ", "");
@@ -22,7 +22,7 @@ export async function PUT(
     await connectDB();
     const body = await request.json();
 
-    const category = await Category.findByIdAndUpdate(params.id, body, {
+    const category = await Category.findByIdAndUpdate(resolvedParams.id, body, {
       new: true,
       runValidators: true,
     });
@@ -50,10 +50,10 @@ export async function PUT(
 // DELETE - Eliminar categoría (soft delete)
 export async function DELETE(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params;
+    const resolvedParams = await params;
     const adminToken = request.headers
       .get("authorization")
       ?.replace("Bearer ", "");
@@ -67,7 +67,7 @@ export async function DELETE(
     await connectDB();
 
     const category = await Category.findByIdAndUpdate(
-      params.id,
+      resolvedParams.id,
       { isActive: false },
       { new: true }
     );
