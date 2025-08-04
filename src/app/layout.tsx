@@ -1,40 +1,34 @@
-import type { Metadata } from 'next'
-import { Poppins } from 'next/font/google'
-import './globals.css'
-import { AuthProvider } from './context/AuthContext'
-import { CartProvider } from './context/CartContext'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import "@fortawesome/fontawesome-free/css/all.min.css"; // ← Agregar esta línea
+import { CategoriesProvider } from "./context/CategoriesContext";
+import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-poppins'
-})
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Frutos Secos Premium - Calidad Natural',
-  description: 'Descubre nuestra selección de frutos secos naturales, frescos y nutritivos.',
-}
+  title: "Frutos Secos",
+  description: "Tienda de frutos secos y productos naturales",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="es">
-      <head>
-        <link 
-          rel="stylesheet" 
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
-        />
-      </head>
-      <body className={poppins.className}>
+      <body className={inter.className}>
         <AuthProvider>
           <CartProvider>
-            {children}
+            <CategoriesProvider>
+              {children}
+            </CategoriesProvider>
           </CartProvider>
         </AuthProvider>
       </body>
     </html>
-  )
+  );
 }

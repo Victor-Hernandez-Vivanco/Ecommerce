@@ -44,7 +44,6 @@ export default function ProductosPage() {
   const [error, setError] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [searchTerm, setSearchTerm] = useState('')
-  // ✅ CORREGIR RANGOS DE PRECIO INICIALES
   const [minPrice, setMinPrice] = useState(0)
   const [maxPrice, setMaxPrice] = useState(50000)
   const [sortBy, setSortBy] = useState('precio: bajo a alto')
@@ -52,6 +51,9 @@ export default function ProductosPage() {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
   const [selectedWeight, setSelectedWeight] = useState<WeightOption | null>(null)
   const [quantity, setQuantity] = useState(1)
+  // ✅ NUEVO: Estado para modal de descuento
+  const [showDiscountModal, setShowDiscountModal] = useState(false)
+  const [discountProduct, setDiscountProduct] = useState<Product | null>(null)
 
   // ✅ CATEGORÍAS ACTUALIZADAS SEGÚN ESPECIFICACIÓN
   const categories = [
@@ -62,9 +64,7 @@ export default function ProductosPage() {
     'Semillas',
     'Mix',
     'Cereales',
-    'Snack',
-    'Full',
-    'Box'
+    'Snack'
   ]
 
   // ✅ FUNCIONES HELPER PARA OBTENER PRECIO Y STOCK
@@ -219,6 +219,31 @@ export default function ProductosPage() {
   const getCurrentPrice = () => {
     if (!selectedWeight || !quickViewProduct) return 0
     return selectedWeight.price
+  }
+
+  // ✅ NUEVA FUNCIÓN: Abrir modal de descuento
+  const openDiscountModal = (product: Product) => {
+    setDiscountProduct(product)
+    setShowDiscountModal(true)
+  }
+
+  // ✅ NUEVA FUNCIÓN: Cerrar modal de descuento
+  const closeDiscountModal = () => {
+    setShowDiscountModal(false)
+    setDiscountProduct(null)
+  }
+
+  // ✅ FUNCIÓN HELPER: Calcular precio con descuento
+  const getDiscountedPrice = (product: Product) => {
+    const originalPrice = getProductPrice(product)
+    return Math.round(originalPrice * (1 - product.discount / 100))
+  }
+
+  // ✅ FUNCIÓN HELPER: Calcular ahorro
+  const getSavings = (product: Product) => {
+    const originalPrice = getProductPrice(product)
+    const discountedPrice = getDiscountedPrice(product)
+    return originalPrice - discountedPrice
   }
 
   return (
@@ -411,8 +436,19 @@ export default function ProductosPage() {
                                 </button>
                               </div>
                               
+                              {/* ✅ BADGES REORGANIZADOS */}
                               {product.featured && (
                                 <div className={styles.featuredBadge}>¡Destacado!</div>
+                              )}
+                              
+                              {/* ✅ NUEVO: Badge de descuento */}
+                              {product.discount > 0 && (
+                                <div 
+                                  className={styles.discountBadge}
+                                  onClick={() => openDiscountModal(product)}
+                                >
+                                  -{product.discount}%
+                                </div>
                               )}
                             </div>
                             
@@ -420,12 +456,19 @@ export default function ProductosPage() {
                               <p className={styles.productCategory}>{product.category}</p>
                               <h3 className={styles.productName}>{product.name}</h3>
                               <div className={styles.priceContainer}>
-                                <span className={styles.price}>
-                                  ${getProductPrice(product).toLocaleString()}
-                                </span>
-                                {product.discount > 0 && (
-                                  <span className={styles.originalPrice}>
-                                    ${Math.round(getProductPrice(product) * 1.2).toLocaleString()}
+                                {/* ✅ PRECIO MODIFICADO PARA MOSTRAR DESCUENTO */}
+                                {product.discount > 0 ? (
+                                  <>
+                                    <span className={styles.price}>
+                                      ${getDiscountedPrice(product).toLocaleString()}
+                                    </span>
+                                    <span className={styles.originalPrice}>
+                                      ${getProductPrice(product).toLocaleString()}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className={styles.price}>
+                                    ${getProductPrice(product).toLocaleString()}
                                   </span>
                                 )}
                               </div>
@@ -551,6 +594,72 @@ export default function ProductosPage() {
                 >
                   {selectedWeight && selectedWeight.stock > 0 ? 'AÑADIR AL CARRITO' : 'SIN STOCK'}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* ✅ NUEVO: Modal de Descuento */}
+      {showDiscountModal && discountProduct && (
+        <div className={styles.modalOverlay} onClick={closeDiscountModal}>
+          <div className={styles.discountModal} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.closeBtn} onClick={closeDiscountModal}>
+              ×
+            </button>
+            
+            <div className={styles.discountModalContent}>
+              <div className={styles.discountIcon}>
+                🎉
+              </div>
+              
+              <h2 className={styles.discountTitle}>¡Oferta Especial!</h2>
+              
+              <div className={styles.discountInfo}>
+                <h3 className={styles.discountProductName}>{discountProduct.name}</h3>
+                
+                <div className={styles.discountDetails}>
+                  <div className={styles.discountPercentage}>
+                    {discountProduct.discount}% OFF
+                  </div>
+                  
+                  <div className={styles.priceComparison}>
+                    <div className={styles.discountedPriceDisplay}>
+                      <span className={styles.newPrice}>
+                        ${getDiscountedPrice(discountProduct).toLocaleString()}
+                      </span>
+                      <span className={styles.oldPrice}>
+                        ${getProductPrice(discountProduct).toLocaleString()}
+                      </span>
+                    </div>
+                    
+                    <div className={styles.savings}>
+                      ¡Ahorras ${getSavings(discountProduct).toLocaleString()}!
+                    </div>
+                  </div>
+                  
+                  <div className={styles.discountActions}>
+                    <button
+                      onClick={() => {
+                        closeDiscountModal()
+                        openQuickView(discountProduct)
+                      }}
+                      className={styles.discountSelectBtn}
+                    >
+                      SELECCIONAR OPCIONES
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        closeDiscountModal()
+                        goToProductPage(discountProduct)
+                      }}
+                      className={styles.discountViewBtn}
+                    >
+                      VER PRODUCTO
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

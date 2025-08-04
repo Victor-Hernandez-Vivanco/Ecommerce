@@ -93,37 +93,70 @@ export const authValidationRules: ValidationRules = {
   }
 }
 
-export const validateEmail = (email: string): boolean => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+export interface PasswordValidation {
+  isValid: boolean;
+  errors: string[];
+  strength: 'weak' | 'medium' | 'strong';
 }
 
-export const validatePassword = (password: string): {
-  isValid: boolean
-  errors: string[]
-} => {
-  const errors: string[] = []
+export const validatePassword = (password: string): PasswordValidation => {
+  const errors: string[] = [];
   
-  if (password.length < 6) {
-    errors.push('Debe tener al menos 6 caracteres')
+  if (password.length < 8) {
+    errors.push('Debe tener al menos 8 caracteres');
   }
   
-  if (!/(?=.*[a-z])/.test(password)) {
-    errors.push('Debe contener al menos una letra minúscula')
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Debe contener al menos una mayúscula');
   }
   
-  if (!/(?=.*[A-Z])/.test(password)) {
-    errors.push('Debe contener al menos una letra mayúscula')
+  if (!/[a-z]/.test(password)) {
+    errors.push('Debe contener al menos una minúscula');
   }
   
-  if (!/(?=.*\d)/.test(password)) {
-    errors.push('Debe contener al menos un número')
+  if (!/[0-9]/.test(password)) {
+    errors.push('Debe contener al menos un número');
+  }
+  
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    errors.push('Debe contener al menos un carácter especial');
+  }
+  
+  // Check for common passwords
+  const commonPasswords = ['password', '123456', 'admin', 'qwerty'];
+  if (commonPasswords.some(common => password.toLowerCase().includes(common))) {
+    errors.push('No debe contener palabras comunes');
+  }
+  
+  let strength: 'weak' | 'medium' | 'strong' = 'weak';
+  if (errors.length === 0) {
+    if (password.length >= 12) {
+      strength = 'strong';
+    } else {
+      strength = 'medium';
+    }
   }
   
   return {
     isValid: errors.length === 0,
-    errors
-  }
-}
+    errors,
+    strength
+  };
+};
+
+export const sanitizeInput = (input: string): string => {
+  return input
+    .replace(/<script[^>]*>.*?<\/script>/gi, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+=/gi, '')
+    .trim();
+};
+
+export const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 254;
+};
 
 export const validatePasswordMatch = (password: string, confirmPassword: string): boolean => {
   return password === confirmPassword

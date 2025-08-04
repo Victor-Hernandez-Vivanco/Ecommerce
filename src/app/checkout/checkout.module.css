@@ -37,13 +37,13 @@
 }
 
 .breadcrumbLink {
-  color: #8B4513;
+  color: var(--primary-color);
   cursor: pointer;
   text-decoration: underline;
 }
 
 .breadcrumbLink:hover {
-  color: #654321;
+  color: var(--secondary-color);
 }
 
 .breadcrumbSeparator {
@@ -76,7 +76,7 @@
 }
 
 .step.active {
-  color: #8B4513;
+  color: var(--primary-color);
 }
 
 .step:not(:last-child)::after {
@@ -91,7 +91,7 @@
 }
 
 .step.active:not(:last-child)::after {
-  background: #8B4513;
+  background: var(--primary-color);
 }
 
 .stepNumber {
@@ -109,7 +109,7 @@
 }
 
 .step.active .stepNumber {
-  background: #8B4513;
+  background: var(--primary-color);
   color: white;
 }
 
@@ -143,7 +143,7 @@
   overflow: hidden;
 }
 
-.cartHeader {
+/* .cartHeader {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 80px;
   gap: 20px;
@@ -155,7 +155,7 @@
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
+} */
 
 .cartItem {
   display: grid;
@@ -314,7 +314,7 @@
 .formGroup select:focus,
 .formGroup textarea:focus {
   outline: none;
-  border-color: #8B4513;
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.1);
 }
 
@@ -351,7 +351,7 @@
 }
 
 .deliveryOption:hover {
-  border-color: #8B4513;
+  border-color: var(--primary-color);
   box-shadow: 0 2px 8px rgba(139, 69, 19, 0.1);
 }
 
@@ -360,11 +360,11 @@
 }
 
 .deliveryOption input[type="radio"]:checked + .optionContent {
-  color: #8B4513;
+  color: var(--primary-color);
 }
 
 .deliveryOption:has(input[type="radio"]:checked) {
-  border-color: #8B4513;
+  border-color: var(--primary-color);
   background: #faf8f5;
 }
 
@@ -382,7 +382,7 @@
 .optionHeader i {
   font-size: 1.2rem;
   margin-right: 8px;
-  color: #8B4513;
+  color: var(--primary-color);
 }
 
 .optionHeader span:first-of-type {
@@ -392,7 +392,7 @@
 
 .deliveryPrice {
   font-weight: 700;
-  color: #8B4513;
+  color: var(--primary-color);
   font-size: 1rem;
 }
 
@@ -406,13 +406,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #8B4513 !important;
+  color: var(--primary-color) !important;
   font-weight: 500 !important;
   margin-top: 8px !important;
 }
 
 .storeAddress i {
   font-size: 0.9rem;
+  margin-right: 6px;
 }
 
 /* Payment Methods - Updated */
@@ -429,6 +430,10 @@
   margin-bottom: 30px;
 }
 
+.removeBtn i {
+  font-size: 0.9rem;
+}
+
 .paymentMethod {
   border: 2px solid #e9ecef;
   border-radius: 8px;
@@ -440,7 +445,7 @@
 }
 
 .paymentMethod:hover {
-  border-color: #8B4513;
+  border-color: var(--primary-color);
   box-shadow: 0 2px 8px rgba(139, 69, 19, 0.1);
 }
 
@@ -449,11 +454,11 @@
 }
 
 .paymentMethod input[type="radio"]:checked + .paymentContent {
-  color: #8B4513;
+  color: var(--primary-color);
 }
 
 .paymentMethod:has(input[type="radio"]:checked) {
-  border-color: #8B4513;
+  border-color: var(--primary-color);
   background: #faf8f5;
 }
 
@@ -470,7 +475,7 @@
 .paymentHeader i {
   font-size: 1.2rem;
   margin-right: 10px;
-  color: #8B4513;
+  color: var(--primary-color);
 }
 
 .paymentHeader span {
@@ -541,7 +546,7 @@
 }
 
 .bankDetails h4 {
-  color: #8B4513;
+  color: var(--primary-color);
   margin: 0 0 15px 0;
   font-size: 1.1rem;
   border-bottom: 1px solid #e9ecef;
@@ -664,7 +669,7 @@
 }
 
 .itemPrice {
-  color: #8B4513;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -726,13 +731,13 @@
 
 .nextBtn,
 .completeBtn {
-  background: #8B4513;
+  background: var(--primary-color);
   color: white;
 }
 
 .nextBtn:hover,
 .completeBtn:hover {
-  background: #654321;
+  background: var(--secondary-color);
 }
 
 .nextBtn:disabled,
@@ -783,7 +788,7 @@
 }
 
 .shopBtn {
-  background: #8B4513;
+  background: var(--primary-color);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -795,7 +800,7 @@
 }
 
 .shopBtn:hover {
-  background: #654321;
+  background: var(--secondary-color);
 }
 
 /* Loading */
@@ -812,7 +817,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #8B4513;
+  border-top: 4px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20px;

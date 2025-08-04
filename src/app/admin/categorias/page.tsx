@@ -5,83 +5,20 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./categorias.module.css";
-
-interface Category {
-  name: string;
-  slug: string;
-  color: string;
-  image: string;
-  textColor: string;
-  hasImage: boolean;
-}
-
-const categories: Category[] = [
-  {
-    name: "* Frutos Secos *",
-    slug: "Frutos Secos",
-    color: "#4ECDC4",
-    image: "/uploads/categories/frutos-secos.png",
-    textColor: "#FFFFFF",
-    hasImage: false,
-  },
-  {
-    name: "* Frutas Deshidratadas *",
-    slug: "Frutas Deshidratadas",
-    color: "#D4A574",
-    image: "/uploads/categories/frutas-deshidratadas.png",
-    textColor: "#FFFFFF",
-    hasImage: false,
-  },
-  {
-    name: "* Despensa *",
-    slug: "Despensa",
-    color: "#E91E63",
-    image: "/uploads/categories/despensa-des.png",
-    textColor: "#FFFFFF",
-    hasImage: false,
-  },
-  {
-    name: "* Semillas *",
-    slug: "Semillas",
-    color: "#8BC34A",
-    image: "/uploads/categories/semillas.png",
-    textColor: "#FFFFFF",
-    hasImage: false,
-  },
-  {
-    name: "* Mix *",
-    slug: "Mix",
-    color: "#FF9800",
-    image: "/uploads/categories/mix.png",
-    textColor: "#FFFFFF",
-    hasImage: false,
-  },
-  {
-    name: "* Cereales *",
-    slug: "Cereales",
-    color: "#8D6E63",
-    image: "/uploads/categories/cereales.png",
-    textColor: "#FFFFFF",
-    hasImage: false,
-  },
-  {
-    name: "* Snack *",
-    slug: "Snack",
-    color: "#8D6E63",
-    image: "/uploads/categories/snack.png",
-    textColor: "#FFFFFF",
-    hasImage: false,
-  },
-];
+import { useCategories } from "../../context/CategoriesContext";
 
 export default function CategoriasAdmin() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [categoriesState, setCategoriesState] =
-    useState<Category[]>(categories);
-  const [uploadingCategory, setUploadingCategory] = useState<string | null>(
-    null
-  );
+  const [uploadingCategory, setUploadingCategory] = useState<string | null>(null);
+  
+  const { 
+    categories, 
+    loading: categoriesLoading, 
+    error, 
+    refreshCategories, 
+    updateCategory 
+  } = useCategories();
 
   const checkAdminAuth = useCallback(async () => {
     try {
@@ -110,33 +47,12 @@ export default function CategoriasAdmin() {
     }
   }, [router]);
 
-  const checkExistingImages = useCallback(async () => {
-    const updatedCategories = await Promise.all(
-      categories.map(async (category) => {
-        try {
-          const response = await fetch(category.image, { method: "HEAD" });
-          return {
-            ...category,
-            hasImage: response.ok,
-          };
-        } catch {
-          return {
-            ...category,
-            hasImage: false,
-          };
-        }
-      })
-    );
-    setCategoriesState(updatedCategories);
-  }, []);
-
   useEffect(() => {
     checkAdminAuth();
-    checkExistingImages();
-  }, [checkAdminAuth, checkExistingImages]);
+  }, [checkAdminAuth]);
 
-  const handleImageUpload = async (category: Category, file: File) => {
-    setUploadingCategory(category.slug);
+  const handleImageUpload = async (categoryId: string, file: File) => {
+    setUploadingCategory(categoryId);
 
     try {
       const adminToken = localStorage.getItem("admin-token");
@@ -147,7 +63,7 @@ export default function CategoriasAdmin() {
 
       const formData = new FormData();
       formData.append("image", file);
-      formData.append("categoryName", category.slug);
+      formData.append("categoryId", categoryId);
 
       const response = await fetch("/api/upload/category-image", {
         method: "POST",
@@ -159,16 +75,10 @@ export default function CategoriasAdmin() {
 
       if (response.ok) {
         const data = await response.json();
-
-        // Actualizar el estado de la categoría
-        setCategoriesState((prev) =>
-          prev.map((cat) =>
-            cat.slug === category.slug
-              ? { ...cat, hasImage: true, image: data.imageUrl }
-              : cat
-          )
-        );
-
+        
+        // Actualizar la categoría con la nueva imagen
+        await updateCategory(categoryId, { image: data.imageUrl });
+        
         alert("Imagen subida exitosamente");
       } else {
         const errorData = await response.json();
@@ -183,20 +93,33 @@ export default function CategoriasAdmin() {
   };
 
   const handleFileSelect = (
-    category: Category,
+    categoryId: string,
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      handleImageUpload(category, file);
+      handleImageUpload(categoryId, file);
     }
   };
 
-  if (loading) {
+  if (loading || categoriesLoading) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.spinner}></div>
         <p>Verificando acceso...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.errorContainer}>
+          <p>Error: {error}</p>
+          <button onClick={refreshCategories} className={styles.retryButton}>
+            Reintentar
+          </button>
+        </div>
       </div>
     );
   }
@@ -210,22 +133,21 @@ export default function CategoriasAdmin() {
               ← Volver al Dashboard
             </Link>
             <h1>Gestión de Categorías</h1>
-            <p>Administra las imágenes de las categorías del sitio</p>
+            <p>Administra las categorías del sitio desde la base de datos</p>
           </div>
         </div>
       </header>
 
       <main className={styles.main}>
         <section className={styles.categoriesSection}>
-          <h2>Imágenes de Categorías</h2>
+          <h2>Categorías Activas ({categories.length})</h2>
           <p className={styles.sectionDescription}>
-            Sube las imágenes para cada categoría. Las imágenes deben ser
-            cuadradas (recomendado: 300x300px) y en formato JPG, PNG o WebP.
+            Gestiona las categorías desde la base de datos. Los cambios se reflejan automáticamente en todo el sitio.
           </p>
 
           <div className={styles.categoriesGrid}>
-            {categoriesState.map((category) => (
-              <div key={category.slug} className={styles.categoryCard}>
+            {categories.map((category) => (
+              <div key={category._id || category.slug} className={styles.categoryCard}>
                 <div className={styles.categoryHeader}>
                   <h3>{category.name}</h3>
                   <span
@@ -237,62 +159,59 @@ export default function CategoriasAdmin() {
                 </div>
 
                 <div className={styles.imageContainer}>
-                  {category.hasImage ? (
-                    <div className={styles.imagePreview}>
-                      <Image
-                        src={category.image}
-                        alt={category.name}
-                        width={200}
-                        height={200}
-                        className={styles.categoryImage}
-                      />
-                      <div className={styles.imageOverlay}>
-                        <span className={styles.statusBadge}>
-                          ✅ Imagen cargada
-                        </span>
-                      </div>
+                  <div className={styles.imagePreview}>
+                    <Image
+                      src={category.image}
+                      alt={category.name}
+                      width={200}
+                      height={200}
+                      className={styles.categoryImage}
+                    />
+                    <div className={styles.imageOverlay}>
+                      <span className={styles.statusBadge}>
+                        ✅ Imagen cargada
+                      </span>
                     </div>
-                  ) : (
-                    <div className={styles.placeholderImage}>
-                      <div className={styles.placeholderIcon}>📷</div>
-                      <p>Sin imagen</p>
-                    </div>
-                  )}
+                  </div>
                 </div>
 
                 <div className={styles.uploadSection}>
                   <input
                     type="file"
-                    id={`upload-${category.slug}`}
+                    id={`upload-${category._id || category.slug}`}
                     accept="image/jpeg,image/jpg,image/png,image/webp"
-                    onChange={(e) => handleFileSelect(category, e)}
+                    onChange={(e) => handleFileSelect(category._id || category.slug, e)}
                     className={styles.fileInput}
-                    disabled={uploadingCategory === category.slug}
+                    disabled={uploadingCategory === (category._id || category.slug)}
                   />
                   <label
-                    htmlFor={`upload-${category.slug}`}
+                    htmlFor={`upload-${category._id || category.slug}`}
                     className={`${styles.uploadButton} ${
-                      uploadingCategory === category.slug
+                      uploadingCategory === (category._id || category.slug)
                         ? styles.uploading
                         : ""
                     }`}
                   >
-                    {uploadingCategory === category.slug ? (
+                    {uploadingCategory === (category._id || category.slug) ? (
                       <>🔄 Subiendo...</>
-                    ) : category.hasImage ? (
-                      <>🔄 Cambiar imagen</>
                     ) : (
-                      <>📤 Subir imagen</>
+                      <>🔄 Cambiar imagen</>
                     )}
                   </label>
                 </div>
 
                 <div className={styles.categoryInfo}>
                   <p>
+                    <strong>ID:</strong> {category._id || 'N/A'}
+                  </p>
+                  <p>
                     <strong>Slug:</strong> {category.slug}
                   </p>
                   <p>
-                    <strong>Ruta:</strong> {category.image}
+                    <strong>Orden:</strong> {category.order}
+                  </p>
+                  <p>
+                    <strong>Activa:</strong> {category.isActive ? 'Sí' : 'No'}
                   </p>
                 </div>
               </div>
