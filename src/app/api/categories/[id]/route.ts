@@ -5,9 +5,10 @@ import Category from "@/models/Category";
 // PUT - Actualizar categoría
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const adminToken = request.headers
       .get("authorization")
       ?.replace("Bearer ", "");
@@ -49,9 +50,10 @@ export async function PUT(
 // DELETE - Eliminar categoría (soft delete)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const adminToken = request.headers
       .get("authorization")
       ?.replace("Bearer ", "");
