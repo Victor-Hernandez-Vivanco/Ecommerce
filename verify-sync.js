@@ -1,10 +1,11 @@
-import { MongoClient } from "mongodb";
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
-// Cargar variables de entorno
+// Cargar configuración de producción
 dotenv.config({ path: '.env.production.local' });
 
-const LOCAL_URI = "mongodb://localhost:27017/planzzz";
+// CORREGIDO: Usar el nombre correcto de la base local
+const LOCAL_URI = 'mongodb://localhost:27017/planzzz';
 const ATLAS_URI = process.env.MONGODB_URI;
 
 if (!ATLAS_URI) {
@@ -12,102 +13,54 @@ if (!ATLAS_URI) {
   process.exit(1);
 }
 
-const COLLECTIONS = ["products", "categories", "users", "advertisements"];
-
 async function verifySync() {
-  console.log("🔍 Verificando sincronización Local ↔ Atlas...");
-  
-  const localClient = new MongoClient(LOCAL_URI);
-  const atlasClient = new MongoClient(ATLAS_URI);
-  
   try {
-    console.log("\n🔗 Conectando a ambas bases...");
-    await localClient.connect();
-    console.log("✅ Conectado a Local");
+    console.log('🔍 Verificando sincronización Local ↔ Atlas...');
     
-    await atlasClient.connect();
-    console.log("✅ Conectado a Atlas");
+    // Conectar a ambas bases
+    const localConn = await mongoose.createConnection(LOCAL_URI);
+    const atlasConn = await mongoose.createConnection(ATLAS_URI);
     
-    const localDb = localClient.db();
-    const atlasDb = atlasClient.db();
+    // CORREGIDO: Usar nombres correctos de las bases de datos
+    const localDb = localConn.getClient().db('planzzz');
+    const atlasDb = atlasConn.getClient().db('frutos-secos');
     
-    console.log("\n📊 Comparación detallada:");
-    console.log("═".repeat(60));
-    console.log("Colección\t\tLocal\tAtlas\tEstado\t\tDiferencia");
-    console.log("═".repeat(60));
+    const collections = ['products', 'categories', 'users', 'advertisements'];
     
-    let allSynced = true;
-    let totalLocal = 0;
-    let totalAtlas = 0;
+    console.log('\n📊 Comparación de documentos:');
+    console.log('─'.repeat(50));
     
-    for (const collection of COLLECTIONS) {
-      try {
-        const localCount = await localDb.collection(collection).countDocuments();
-        const atlasCount = await atlasDb.collection(collection).countDocuments();
-        
-        totalLocal += localCount;
-        totalAtlas += atlasCount;
-        
-        const synced = localCount === atlasCount;
-        const status = synced ? "✅ SYNC" : "⚠️ DIFF";
-        const diff = synced ? "-" : `${Math.abs(localCount - atlasCount)}`;
-        
-        if (!synced) allSynced = false;
-        
-        console.log(`${collection.padEnd(16)}\t${localCount}\t${atlasCount}\t${status}\t\t${diff}`);
-        
-        // Mostrar detalles si hay diferencias
-        if (!synced && (localCount > 0 || atlasCount > 0)) {
-          if (localCount > 0 && atlasCount === 0) {
-            console.log(`   └─ ⚠️ Atlas vacío, local tiene datos`);
-          } else if (localCount === 0 && atlasCount > 0) {
-            console.log(`   └─ ⚠️ Local vacío, Atlas tiene datos`);
-          } else {
-            console.log(`   └─ ⚠️ Cantidades diferentes`);
-          }
-        }
-        
-      } catch (error) {
-        console.log(`${collection.padEnd(16)}\t❌\t❌\t❌ ERROR\t\t-`);
-        allSynced = false;
-      }
+    let allMatch = true;
+    
+    for (const collection of collections) {
+      const localCount = await localDb.collection(collection).countDocuments();
+      const atlasCount = await atlasDb.collection(collection).countDocuments();
+      
+      const status = localCount === atlasCount ? '✅' : '❌';
+      if (localCount !== atlasCount) allMatch = false;
+      
+      console.log(`${status} ${collection.padEnd(15)} | Local: ${localCount.toString().padStart(3)} | Atlas: ${atlasCount.toString().padStart(3)}`);
     }
     
-    console.log("═".repeat(60));
-    console.log(`TOTAL\t\t\t${totalLocal}\t${totalAtlas}\t${allSynced ? '✅ OK' : '⚠️ DIFF'}\t\t${Math.abs(totalLocal - totalAtlas)}`);
-    console.log("═".repeat(60));
+    console.log('─'.repeat(50));
     
-    // Resultado final
-    if (allSynced) {
-      console.log("\n🎉 ¡Perfecto! Todas las colecciones están sincronizadas");
-      console.log("🚀 Tu app en Vercel tendrá los mismos datos que local");
+    if (allMatch) {
+      console.log('🎉 ¡Perfecto! Todos los datos están sincronizados');
+      console.log('✅ Listo para deploy a producción');
     } else {
-      console.log("\n⚠️ Hay diferencias entre Local y Atlas");
-      console.log("💡 Ejecuta 'node sync-to-atlas.js' para sincronizar");
+      console.log('⚠️ Hay diferencias en los datos');
+      console.log('🔄 Considera ejecutar sync-to-atlas.js nuevamente');
     }
     
-    // Información adicional
-    console.log("\n📋 Información adicional:");
-    console.log(`🏠 Local DB: planzzz (${LOCAL_URI})`);
-    console.log(`🌐 Atlas DB: frutos-secos`);
-    console.log(`🔗 App URL: https://ecommerce-2ni7hzrd6-victorhernandezvivanco75-6138s-projects.vercel.app`);
+    await localConn.close();
+    await atlasConn.close();
     
   } catch (error) {
-    console.error("❌ Error durante la verificación:", error);
-    console.log("\n💡 Posibles causas:");
-    console.log("   • MongoDB local no está ejecutándose");
-    console.log("   • Sin conexión a internet");
-    console.log("   • Credenciales de Atlas incorrectas");
-  } finally {
-    try {
-      await localClient.close();
-      await atlasClient.close();
-      console.log("\n🔌 Conexiones cerradas");
-    } catch (error) {
-      // Ignorar errores de cierre
+    console.error('❌ Error durante la verificación:', error);
+    if (error.message.includes('ECONNREFUSED')) {
+      console.log('💡 Asegúrate de que MongoDB local esté ejecutándose');
     }
   }
 }
 
-// Ejecutar verificación
-verifySync().catch(console.error);
+verifySync();

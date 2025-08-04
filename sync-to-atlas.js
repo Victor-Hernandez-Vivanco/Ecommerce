@@ -1,10 +1,11 @@
-import { MongoClient } from "mongodb";
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
-// Cargar variables de entorno
+// Cargar configuración de producción
 dotenv.config({ path: '.env.production.local' });
 
-const LOCAL_URI = "mongodb://localhost:27017/planzzz";
+const LOCAL_URI = 'mongodb://localhost:27017/frutos-secos-local';
 const ATLAS_URI = process.env.MONGODB_URI;
 
 if (!ATLAS_URI) {
@@ -12,98 +13,118 @@ if (!ATLAS_URI) {
   process.exit(1);
 }
 
-const COLLECTIONS_TO_SYNC = [
-  "products",
-  "categories", 
-  "users",
-  "advertisements"
-];
+// Modelos (importar desde tu proyecto)
+const ProductSchema = new mongoose.Schema({
+  name: String,
+  description: String,
+  price: Number,
+  category: String,
+  images: [String],
+  stock: Number,
+  featured: Boolean,
+  createdAt: { type: Date, default: Date.now }
+});
+
+const CategorySchema = new mongoose.Schema({
+  name: String,
+  slug: String,
+  image: String,
+  color: String,
+  createdAt: { type: Date, default: Date.now }
+});
+
+const UserSchema = new mongoose.Schema({
+  email: String,
+  password: String,
+  name: String,
+  role: { type: String, default: 'user' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const AdvertisementSchema = new mongoose.Schema({
+  title: String,
+  description: String,
+  image: String,
+  link: String,
+  active: Boolean,
+  createdAt: { type: Date, default: Date.now }
+});
 
 async function syncToAtlas() {
-  console.log("🔄 Iniciando sincronización Local → Atlas...");
-  console.log("📍 Origen: MongoDB Local (planzzz)");
-  console.log("🌐 Destino: MongoDB Atlas (frutos-secos)");
-  
-  const localClient = new MongoClient(LOCAL_URI);
-  const atlasClient = new MongoClient(ATLAS_URI);
-  
   try {
-    // Conectar a ambas bases
-    console.log("\n🔗 Conectando a bases de datos...");
-    await localClient.connect();
-    console.log("✅ Conectado a MongoDB Local");
+    console.log('🔄 Iniciando sincronización Local → Atlas...');
     
-    await atlasClient.connect();
-    console.log("✅ Conectado a MongoDB Atlas");
+    // Conectar a base local
+    console.log('📡 Conectando a MongoDB Local...');
+    const localConn = await mongoose.createConnection(LOCAL_URI);
     
-    const localDb = localClient.db();
-    const atlasDb = atlasClient.db();
+    // Conectar a Atlas
+    console.log('☁️ Conectando a MongoDB Atlas...');
+    const atlasConn = await mongoose.createConnection(ATLAS_URI);
     
-    let totalDocuments = 0;
+    // Modelos para ambas conexiones
+    const LocalProduct = localConn.model('Product', ProductSchema);
+    const LocalCategory = localConn.model('Category', CategorySchema);
+    const LocalUser = localConn.model('User', UserSchema);
+    const LocalAdvertisement = localConn.model('Advertisement', AdvertisementSchema);
     
-    // Sincronizar cada colección
-    for (const collectionName of COLLECTIONS_TO_SYNC) {
-      console.log(`\n📦 Sincronizando colección: ${collectionName}`);
-      
-      try {
-        // Obtener datos de local
-        const localData = await localDb.collection(collectionName).find({}).toArray();
-        console.log(`📊 Documentos en local: ${localData.length}`);
-        
-        if (localData.length > 0) {
-          // Limpiar Atlas y copiar datos
-          const deleteResult = await atlasDb.collection(collectionName).deleteMany({});
-          console.log(`🗑️ Atlas limpiado (${deleteResult.deletedCount} docs eliminados)`);
-          
-          const insertResult = await atlasDb.collection(collectionName).insertMany(localData);
-          console.log(`✅ ${insertResult.insertedCount} documentos copiados a Atlas`);
-          totalDocuments += insertResult.insertedCount;
-        } else {
-          console.log(`ℹ️ No hay datos para copiar en ${collectionName}`);
-          // Limpiar colección vacía en Atlas también
-          await atlasDb.collection(collectionName).deleteMany({});
-        }
-      } catch (error) {
-        console.error(`❌ Error sincronizando ${collectionName}:`, error.message);
-      }
+    const AtlasProduct = atlasConn.model('Product', ProductSchema);
+    const AtlasCategory = atlasConn.model('Category', CategorySchema);
+    const AtlasUser = atlasConn.model('User', UserSchema);
+    const AtlasAdvertisement = atlasConn.model('Advertisement', AdvertisementSchema);
+    
+    // Sincronizar Categorías
+    console.log('📂 Sincronizando categorías...');
+    const localCategories = await LocalCategory.find({});
+    if (localCategories.length > 0) {
+      await AtlasCategory.deleteMany({});
+      await AtlasCategory.insertMany(localCategories.map(cat => cat.toObject()));
+      console.log(`✅ ${localCategories.length} categorías sincronizadas`);
     }
     
-    // Verificación final
-    console.log("\n🔍 Verificación final:");
-    console.log("─".repeat(40));
-    for (const collectionName of COLLECTIONS_TO_SYNC) {
-      try {
-        const atlasCount = await atlasDb.collection(collectionName).countDocuments();
-        const localCount = await localDb.collection(collectionName).countDocuments();
-        const status = localCount === atlasCount ? "✅" : "⚠️";
-        console.log(`${status} ${collectionName}: ${atlasCount} docs (local: ${localCount})`);
-      } catch (error) {
-        console.log(`❌ ${collectionName}: Error verificando`);
-      }
+    // Sincronizar Productos
+    console.log('🛍️ Sincronizando productos...');
+    const localProducts = await LocalProduct.find({});
+    if (localProducts.length > 0) {
+      await AtlasProduct.deleteMany({});
+      await AtlasProduct.insertMany(localProducts.map(prod => prod.toObject()));
+      console.log(`✅ ${localProducts.length} productos sincronizados`);
     }
-    console.log("─".repeat(40));
     
-    console.log(`\n🎉 ¡Sincronización completada exitosamente!`);
-    console.log(`📊 Total documentos sincronizados: ${totalDocuments}`);
-    console.log(`🚀 Tu app en Vercel ahora tendrá los datos actualizados`);
-    console.log(`🌐 URL: https://ecommerce-2ni7hzrd6-victorhernandezvivanco75-6138s-projects.vercel.app`);
+    // Sincronizar Usuarios (solo admins)
+    console.log('👥 Sincronizando usuarios administradores...');
+    const localAdmins = await LocalUser.find({ role: 'admin' });
+    if (localAdmins.length > 0) {
+      // No eliminar todos los usuarios, solo sincronizar admins
+      for (const admin of localAdmins) {
+        await AtlasUser.findOneAndUpdate(
+          { email: admin.email },
+          admin.toObject(),
+          { upsert: true }
+        );
+      }
+      console.log(`✅ ${localAdmins.length} administradores sincronizados`);
+    }
+    
+    // Sincronizar Anuncios
+    console.log('📢 Sincronizando anuncios...');
+    const localAds = await LocalAdvertisement.find({});
+    if (localAds.length > 0) {
+      await AtlasAdvertisement.deleteMany({});
+      await AtlasAdvertisement.insertMany(localAds.map(ad => ad.toObject()));
+      console.log(`✅ ${localAds.length} anuncios sincronizados`);
+    }
+    
+    console.log('\n🎉 ¡Sincronización completada exitosamente!');
+    console.log('📝 Ejecuta verify-sync.js para verificar los datos');
+    
+    await localConn.close();
+    await atlasConn.close();
     
   } catch (error) {
-    console.error("❌ Error durante la sincronización:", error);
-    console.log("\n💡 Posibles soluciones:");
-    console.log("   • Verifica que MongoDB local esté ejecutándose");
-    console.log("   • Verifica la conexión a internet para Atlas");
-    console.log("   • Verifica las credenciales de Atlas");
-  } finally {
-    try {
-      await localClient.close();
-      await atlasClient.close();
-      console.log("\n🔌 Conexiones cerradas");
-    } catch (error) {
-      // Ignorar errores de cierre
-    }
+    console.error('❌ Error durante la sincronización:', error);
+    process.exit(1);
   }
 }
 
-// Ejecutar sincronización
-syncToAtlas().catch(console.error);
+syncToAtlas();

@@ -1,6 +1,6 @@
 # 🥜 Ecommerce de Frutos Secos
 
-Una aplicación web moderna de comercio electrónico especializada en la venta de frutos secos, desarrollada con Next.js 14, React y MongoDB.
+Una aplicación web moderna de comercio electrónico especializada en la venta de frutos secos, desarrollada con Next.js 15, React 18 y MongoDB Atlas.
 
 ## 🚀 Características Principales
 
@@ -13,56 +13,62 @@ Una aplicación web moderna de comercio electrónico especializada en la venta d
 - **Carrusel Principal**: Productos destacados en la página principal
 - **Productos Relacionados**: Recomendaciones dinámicas en cada producto
 - **Diseño Responsivo**: Optimizado para móviles, tablets y desktop
+- **Categorías Dinámicas**: Sistema de categorías con imágenes y colores personalizados
 
 ### 👨‍💼 Panel de Administración
 
 - **Dashboard Ejecutivo**: Resumen de negocio y accesos rápidos
-- **Gestión de Productos**: CRUD completo con subida de imágenes
+- **Gestión de Productos**: CRUD completo con subida múltiple de imágenes
 - **Control de Inventario**: Gestión de stock por gramaje
-- **Categorías Múltiples**: Asignación de productos a múltiples categorías
-- **Productos Destacados**: Configuración de carrusel principal
+- **Gestión de Categorías**: Administración completa de categorías con imágenes
+- **Sistema de Carrusel**: Configuración de anuncios y productos destacados
+- **Productos Destacados**: Configuración de productos principales
 - **Autenticación Segura**: Sistema de tokens JWT para administradores
-- **Notificaciones**: Sistema de alertas para tokens expirados
+- **Notificaciones**: Sistema de alertas y confirmaciones
 
 ### 🔐 Sistema de Usuarios
 
 - **Registro y Login**: Autenticación completa de usuarios
 - **Perfiles de Usuario**: Gestión de información personal
 - **Roles y Permisos**: Diferenciación entre usuarios y administradores
+- **Verificación de Tokens**: Sistema robusto de autenticación
 
 ## 🛠️ Tecnologías Utilizadas
 
 ### Frontend
 
-- **Next.js 14** - Framework React con App Router
+- **Next.js 15** - Framework React con App Router
 - **React 18** - Biblioteca de interfaz de usuario
-- **TypeScript** - Tipado estático para mayor robustez
+- **TypeScript 5** - Tipado estático para mayor robustez
 - **CSS Modules** - Estilos modulares y scoped
 - **React Hot Toast** - Notificaciones elegantes
+- **React Icons** - Iconografía moderna
 - **Context API** - Gestión de estado global
 
 ### Backend
 
 - **Next.js API Routes** - API RESTful integrada
-- **MongoDB** - Base de datos NoSQL
+- **MongoDB Atlas** - Base de datos NoSQL en la nube
 - **Mongoose** - ODM para MongoDB
 - **JWT** - Autenticación basada en tokens
 - **bcryptjs** - Encriptación de contraseñas
-- **Multer** - Subida de archivos
+- **Multer** - Subida de archivos e imágenes
 
 ### Herramientas de Desarrollo
 
 - **ESLint** - Linting de código
 - **TypeScript** - Tipado estático
 - **Git** - Control de versiones
+- **Vercel** - Plataforma de deployment
 
 ## 📦 Instalación y Configuración
 
 ### Prerrequisitos
 
 - Node.js (versión 18 o superior)
-- npm o yarn
-- MongoDB (local o MongoDB Atlas)
+- npm (incluido con Node.js)
+- Cuenta en MongoDB Atlas (para producción)
+- Cuenta en Vercel (para deployment)
 
 ### Pasos de Instalación
 
@@ -78,44 +84,63 @@ npm install
 npm run dev
 ```
 
-### Configuración de Base de Datos
+### Configuración de Variables de Entorno
 
-1. **MongoDB Local**: Asegúrate de tener MongoDB ejecutándose localmente
-2. **MongoDB Atlas**: Crea una cuenta y obtén la URI de conexión
-3. **Configuración**: La aplicación se conectará automáticamente a MongoDB
+Para **desarrollo local**, las variables se configuran automáticamente.
+Para **producción en Vercel**, configura estas variables en el dashboard:
+
+```env
+MONGODB_URI=mongodb+srv://[usuario]:[password]@[cluster].mongodb.net/[database]
+JWT_SECRET=[tu_jwt_secret_seguro]
+NEXTAUTH_SECRET=[tu_nextauth_secret]
+NEXTAUTH_URL=[tu_url_de_produccion]
+NODE_ENV=production
+```
 
 ## 🌐 URLs de Acceso
+
+### Desarrollo Local
 
 - **Tienda Principal**: [http://localhost:3000](http://localhost:3000)
 - **Panel Admin**: [http://localhost:3000/admin](http://localhost:3000/admin)
 - **Login Admin**: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
+
+### Producción
+
+- **Tienda Principal**: [https://tu-dominio.vercel.app](https://tu-dominio.vercel.app)
+- **Panel Admin**: [https://tu-dominio.vercel.app/admin](https://tu-dominio.vercel.app/admin)
 
 ## 📱 Funcionalidades Detalladas
 
 ### 🏠 Página Principal
 
 - Hero section con carrusel de productos destacados
-- Navegación intuitiva con categorías
+- Navegación intuitiva con categorías dinámicas
 - Grid de productos recomendados
-- Footer informativo
+- Sección de características del negocio
+- Footer informativo con enlaces
 
 ### 📦 Gestión de Productos
 
-- **Catálogo Público**: Grid responsivo con filtros
+- **Catálogo Público**: Grid responsivo con filtros por categoría
 - **Página Individual**: Galería de imágenes, selector de gramaje, información detallada
-- **Admin - Lista**: Tabla completa con imagen, ID, nombre, descripción, categorías, precio, stock y acciones
+- **Admin - Lista**: Tabla completa con imagen, información y acciones
 - **Admin - Crear/Editar**: Formulario completo con subida múltiple de imágenes
+- **Gestión de Stock**: Control de inventario por gramaje
 
 ### 🛒 Carrito y Checkout
 
 - **Carrito**: Visualización, modificación de cantidades, cálculo de totales
 - **Checkout**: Proceso paso a paso con información de envío y contacto
 - **Persistencia**: Datos guardados en localStorage
+- **Validaciones**: Formularios con validación en tiempo real
 
 ### 👨‍💼 Panel de Administración
 
 - **Dashboard**: Resumen ejecutivo con accesos rápidos
 - **Gestión de Productos**: CRUD completo con interfaz intuitiva
+- **Gestión de Categorías**: Administración de categorías con colores e imágenes
+- **Sistema de Carrusel**: Configuración de anuncios principales
 - **Subida de Imágenes**: Sistema robusto con validaciones
 - **Autenticación**: Login seguro con verificación de tokens
 
@@ -127,11 +152,15 @@ web_frutos_secos/
 │ ├── admin/ # Panel de administración
 │ │ ├── dashboard/ # Dashboard principal
 │ │ ├── login/ # Login de admin
-│ │ └── productos/ # Gestión de productos
+│ │ ├── productos/ # Gestión de productos
+│ │ ├── categorias/ # Gestión de categorías
+│ │ └── carrusel/ # Gestión de carrusel
 │ ├── api/ # API Routes
 │ │ ├── admin/ # Endpoints de admin
 │ │ ├── auth/ # Autenticación
 │ │ ├── products/ # Gestión de productos
+│ │ ├── categories/ # Gestión de categorías
+│ │ ├── advertisements/ # Gestión de anuncios
 │ │ └── upload/ # Subida de archivos
 │ ├── carrito/ # Carrito de compras
 │ ├── checkout/ # Proceso de compra
@@ -145,7 +174,10 @@ web_frutos_secos/
 ├── src/models/ # Modelos de MongoDB
 ├── public/ # Archivos estáticos
 │ └── uploads/ # Imágenes subidas
-└── scripts/ # Scripts de utilidad
+│ ├── categories/ # Imágenes de categorías
+│ ├── products/ # Imágenes de productos
+│ └── advertisements/ # Imágenes de anuncios
+└── package.json # Dependencias y scripts
 
 ## 🚀 Scripts Disponibles
 
@@ -155,35 +187,30 @@ npm run dev          # Ejecutar en modo desarrollo
 npm run build        # Construir para producción
 npm run start        # Ejecutar en producción
 npm run lint         # Linter de código
-
-# Scripts de utilidad
-node create-admin.js     # Crear usuario administrador
-node create-products.js  # Poblar base de datos con productos
-node clear-products.js   # Limpiar productos de la base de datos
 ```
 
 ## 🔧 Configuración Inicial
 
 ### Crear Administrador
 
-```bash
-node create-admin.js
-```
-
-### Poblar Base de Datos
+Una vez desplegada la aplicación, puedes crear un administrador usando la API:
 
 ```bash
-node create-products.js
+# Credenciales por defecto
+Email: admin@frutossecos.com
+Password: admin123
 ```
 
 ## 📊 Características Técnicas
 
 ### Seguridad
 
-- Autenticación JWT con expiración
-- Encriptación de contraseñas con bcrypt
+- Autenticación JWT con expiración automática
+- Encriptación de contraseñas con bcrypt (salt rounds: 12)
 - Validación de tokens en rutas protegidas
 - Middleware de protección para rutas admin
+- Validación de entrada en todos los endpoints
+- Headers de seguridad configurados
 
 ### Performance
 
@@ -191,6 +218,8 @@ node create-products.js
 - Lazy loading de componentes
 - CSS Modules para estilos optimizados
 - API Routes optimizadas
+- Compresión de imágenes automática
+- Cache de recursos estáticos
 
 ### UX/UI
 
@@ -198,6 +227,31 @@ node create-products.js
 - Notificaciones toast elegantes
 - Loading states en todas las operaciones
 - Manejo de errores user-friendly
+- Interfaz intuitiva y moderna
+- Accesibilidad mejorada
+
+### Deployment
+
+- **Plataforma**: Vercel
+- **Base de Datos**: MongoDB Atlas
+- **CDN**: Vercel Edge Network
+- **SSL**: Certificado automático
+- **Dominio**: Personalizable
+
+## 🔄 Flujo de Desarrollo
+
+1. **Desarrollo Local**: Usa MongoDB local para desarrollo
+2. **Testing**: Pruebas en entorno local
+3. **Build**: Construcción optimizada para producción
+4. **Deploy**: Deployment automático en Vercel
+5. **Producción**: Conectado a MongoDB Atlas
+
+## 📈 Métricas y Monitoreo
+
+- **Analytics**: Integración con Vercel Analytics
+- **Performance**: Core Web Vitals optimizados
+- **Uptime**: Monitoreo automático de Vercel
+- **Logs**: Sistema de logging integrado
 
 ## 🤝 Contribución
 
@@ -216,11 +270,62 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 **Victor Hernández Vivanco**
 
 - GitHub: [@Victor-Hernandez-Vivanco](https://github.com/Victor-Hernandez-Vivanco)
+- Email: victor.hernandez@ejemplo.com
 
 ## 📞 Soporte
 
-Si tienes alguna pregunta o necesitas ayuda, no dudes en abrir un issue en el repositorio.
+Si tienes alguna pregunta o necesitas ayuda:
+
+- 📧 Email: soporte@frutossecos.com
+- 🐛 Issues: [GitHub Issues](https://github.com/tu-usuario/web_frutos_secos/issues)
+- 📖 Documentación: [Wiki del Proyecto](https://github.com/tu-usuario/web_frutos_secos/wiki)
+
+## 🎯 Roadmap
+
+### Próximas Funcionalidades
+
+- [ ] Sistema de pagos integrado
+- [ ] Gestión de pedidos
+- [ ] Sistema de reviews y calificaciones
+- [ ] Programa de fidelización
+- [ ] Chat de soporte en vivo
+- [ ] App móvil nativa
+
+### Mejoras Técnicas
+
+- [ ] Tests automatizados
+- [ ] CI/CD pipeline
+- [ ] Optimización de imágenes avanzada
+- [ ] PWA (Progressive Web App)
+- [ ] Internacionalización (i18n)
 
 ---
 
-⭐ ¡No olvides dar una estrella al proyecto si te ha sido útil!
+## 🚀 Tu Workflow Directo
+
+Como ya tienes los archivos de configuración, puedes ir directo a:
+
+### 1. Verificar Configuración
+
+```bash
+# Probar conexión a Atlas
+node test-atlas-connection.js
+```
+
+### 2. Workflow de Desarrollo
+
+```bash
+# Desarrollar localmente
+npm run dev
+
+# Cuando estés listo para sincronizar
+node sync-to-atlas.js
+
+# Verificar sincronización
+node verify-sync.js
+
+# Deploy a producción
+git add .
+git commit -m "New features"
+git push origin main
+```
