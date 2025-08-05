@@ -113,9 +113,10 @@ const SafeImagePreview = ({
             <div className={styles.spinner}></div>
           </div>
         )}
-        <img
+        <Image
           src={src}
           alt={alt}
+          width={width}
           height={height}
           className={className}
           style={{
@@ -128,6 +129,7 @@ const SafeImagePreview = ({
           onError={() =>
             handleImageError("Dominio no permitido o imagen no accesible")
           }
+          unoptimized // Add unoptimized prop for external URLs
         />
       </>
     );

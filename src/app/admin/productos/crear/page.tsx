@@ -7,7 +7,8 @@ import Image from 'next/image';
 
 import { useAuthHandler } from '../../../hooks/useAuthHandler';
 import { toast } from 'react-hot-toast';
-import styles from '../productos.module.css';
+import styles from './crear.module.css';
+
 
 interface PriceByWeight {
   weight: number;
@@ -43,14 +44,18 @@ const categories = [
   'Mix',
   'Cereales',
   'Snack',
-  'Full',
-  'Box'
+ 
 ];
 
 export default function CrearProducto() {
   const router = useRouter();
   const { makeAuthenticatedRequest } = useAuthHandler();
   const [loading, setLoading] = useState(false);
+  
+  // Función para formatear números al estilo chileno
+  const formatChileanNumber = (number: number): string => {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
   const [formData, setFormData] = useState<ProductForm>({
     name: '',
     description: '',
@@ -349,14 +354,16 @@ export default function CrearProducto() {
             <Link href="/admin/productos" className={styles.backBtn}>
               ← Volver a Productos
             </Link>
-            <h1>➕ Crear Nuevo Producto</h1>
+            <div className={styles.headerTitle}>
+              <h1> Crear Nuevo Producto</h1>
+            </div>
           </div>
         </div>
       </header>
 
       <main className={styles.main}>
         <div className={styles.formContainer}>
-          <form onSubmit={handleSubmit} className={styles.productForm}>
+          <form id="productForm" onSubmit={handleSubmit} className={styles.productForm}>
             <div className={styles.formGrid}>
               {/* Columna izquierda */}
               <div className={styles.formColumn}>
@@ -420,6 +427,11 @@ export default function CrearProducto() {
                     Precios Calculados y Stock *
                   </label>
                   <div className={styles.pricesContainer}>
+                    <div className={styles.pricesHeader}>
+                      <span className={styles.headerLabel}>Peso</span>
+                      <span className={styles.headerLabel}>Precio</span>
+                      <span className={styles.headerLabel}>Stock</span>
+                    </div>
                     {formData.pricesByWeight.map((priceWeight, index) => (
                       <div key={index} className={styles.priceRow}>
                         <div className={styles.weightInfo}>
@@ -429,7 +441,7 @@ export default function CrearProducto() {
                         </div>
                         <div className={styles.priceDisplay}>
                           <span className={styles.calculatedPrice}>
-                            ${priceWeight.price.toLocaleString()} CLP
+                            ${formatChileanNumber(priceWeight.price)}
                           </span>
                         </div>
                         <div className={styles.stockInput}>
@@ -438,7 +450,7 @@ export default function CrearProducto() {
                             placeholder="Stock"
                             value={priceWeight.stock}
                             onChange={(e) => handleStockChange(index, parseInt(e.target.value) || 0)}
-                            className={styles.input}
+                            className={styles.stockInputField}
                             min="0"
                           />
                         </div>
@@ -450,7 +462,6 @@ export default function CrearProducto() {
 
                 {/* ✅ NUEVA SECCIÓN PARA MÚLTIPLES CATEGORÍAS */}
                 <div className={styles.formRow}>
-                  {/* ✅ REEMPLAZAR EL SELECT POR SELECTOR MÚLTIPLE */}
                   <div className={styles.formGroup}>
                     <label className={styles.label}>
                       Categorías * (Selecciona una o más)
@@ -496,7 +507,7 @@ export default function CrearProducto() {
                   </div>
                 </div>
 
-                {/* ✅ OPCIONES DE VISUALIZACIÓN */}
+                {/* ✅ OPCIONES DE VISUALIZACIÓN - MOVIDA FUERA DEL FORMROW */}
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Opciones de Visualización</label>
                   
@@ -510,17 +521,6 @@ export default function CrearProducto() {
                         className={styles.checkbox}
                       />
                       <span>Marcar como producto destacado</span>
-                    </label>
-                    
-                    <label className={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        name="isAdvertisement"
-                        checked={formData.isAdvertisement}
-                        onChange={handleInputChange}
-                        className={styles.checkbox}
-                      />
-                      <span>Agregar como publicidad (carrusel del home)</span>
                     </label>
                     
                     <label className={styles.checkboxLabel}>
@@ -618,17 +618,18 @@ export default function CrearProducto() {
               </div>
             </div>
 
-            {/* Botones */}
-            <div className={styles.formActions}>
+            {/* ✅ BOTONES DE ACCIÓN - ÚNICA SECCIÓN */}
+            <div className={styles.submitSection}>
               <Link href="/admin/productos" className={styles.cancelBtn}>
                 Cancelar
               </Link>
               <button
                 type="submit"
-                disabled={loading}
+                form="productForm"
                 className={styles.submitBtn}
+                disabled={loading}
               >
-                {loading ? '🔄 Creando...' : '✅ Crear Producto'}
+                {loading ? 'Creando...' : 'Crear Producto'}
               </button>
             </div>
           </form>

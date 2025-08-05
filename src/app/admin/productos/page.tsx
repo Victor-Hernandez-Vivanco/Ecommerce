@@ -229,7 +229,7 @@ export default function ProductosAdmin() {
           </div>
           <div><h1>Gestión de Productos</h1></div>
           <Link href="/admin/productos/crear" className={styles.createBtn}>
-            ➕ Crear Producto
+          Crear Producto
           </Link>
         </div>
       </header>
@@ -279,11 +279,10 @@ export default function ProductosAdmin() {
           
           {products.length === 0 ? (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>📦</div>
               <h3>No hay productos aún</h3>
               <p>Comienza creando tu primer producto para la tienda.</p>
               <Link href="/admin/productos/crear" className={styles.createFirstBtn}>
-                ➕ Crear primer producto
+               Crear primer producto
               </Link>
             </div>
           ) : filteredProducts.length === 0 ? (

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import styles from '../../productos.module.css';
+import styles from './editar.module.css';
 
 interface PriceByWeight {
   weight: number;
@@ -13,7 +13,9 @@ interface PriceByWeight {
 }
 
 interface ProductImage {
-  url: string;
+  file?: File;
+  preview?: string;
+  url?: string;
   originalName: string;
   size: number;
   mimeType: string;
@@ -35,7 +37,6 @@ interface ProductForm {
   discount: number;
 }
 
-// ✅ CATEGORÍAS ACTUALIZADAS
 const categories = [
   'Frutos Secos',
   'Frutas Deshidratadas',
@@ -55,6 +56,13 @@ export default function EditarProducto() {
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [newImages, setNewImages] = useState<ProductImage[]>([]);
+  
+  // Función para formatear números al estilo chileno
+  const formatChileanNumber = (number: number): string => {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+  
   const [formData, setFormData] = useState<ProductForm>({
     name: '',
     description: '',
@@ -83,11 +91,8 @@ export default function EditarProducto() {
     { value: 1000, label: '1kg' }
   ];
 
-  useEffect(() => {
-    loadProduct();
-  }, [productId]);
-
-  const loadProduct = async () => {
+  // ✅ USAR useCallback PARA loadProduct
+  const loadProduct = useCallback(async () => {
     try {
       const adminToken = localStorage.getItem('admin-token');
       
@@ -129,7 +134,11 @@ export default function EditarProducto() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId, router]); // ✅ INCLUIR DEPENDENCIAS
+
+  useEffect(() => {
+    loadProduct();
+  }, [loadProduct]); // ✅ INCLUIR loadProduct EN DEPENDENCIAS
 
   // ✅ MANEJAR SELECCIÓN MÚLTIPLE DE CATEGORÍAS
   const handleCategoryChange = (category: string, isChecked: boolean) => {
@@ -170,6 +179,122 @@ export default function EditarProducto() {
     const newPrices = [...formData.pricesByWeight];
     newPrices[index] = { ...newPrices[index], stock };
     setFormData(prev => ({ ...prev, pricesByWeight: newPrices }));
+  };
+
+  // ✅ MANEJAR MÚLTIPLES IMÁGENES NUEVAS
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    const totalImages = formData.images.length + newImages.length + files.length;
+    if (totalImages > 6) {
+      setErrors(prev => ({ ...prev, images: 'Máximo 6 imágenes permitidas' }));
+      return;
+    }
+
+    files.forEach((file, index) => {
+      // Validar tipo de archivo
+      const allowedTypes = ['image/svg+xml', 'image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        setErrors(prev => ({ ...prev, images: 'Tipo de archivo no válido. Use SVG, JPG, PNG o WebP.' }));
+        return;
+      }
+
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, images: 'Archivo demasiado grande. Máximo 5MB por imagen.' }));
+        return;
+      }
+
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newImage: ProductImage = {
+          file,
+          preview: e.target?.result as string,
+          originalName: file.name,
+          size: file.size,
+          mimeType: file.type,
+          uploadDate: new Date(),
+          isPrimary: formData.images.length === 0 && newImages.length === 0 && index === 0
+        };
+        
+        setNewImages(prev => [...prev, newImage]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Limpiar error
+    if (errors.images) {
+      setErrors(prev => ({ ...prev, images: '' }));
+    }
+  };
+
+  // ✅ ELIMINAR IMAGEN EXISTENTE
+  const removeExistingImage = (index: number) => {
+    const newImages = formData.images.filter((_, i) => i !== index);
+    
+    // Si eliminamos la imagen principal, hacer principal la primera disponible
+    if (formData.images[index].isPrimary) {
+      if (newImages.length > 0) {
+        newImages[0].isPrimary = true;
+      } else if (newImages.length > 0) {
+        newImages[0].isPrimary = true;
+      }
+    }
+    
+    setFormData(prev => ({ ...prev, images: newImages }));
+  };
+
+  // ✅ ELIMINAR IMAGEN NUEVA
+  const removeNewImage = (index: number) => {
+    const updatedNewImages = newImages.filter((_, i) => i !== index);
+    
+    // Si eliminamos la imagen principal nueva, hacer principal la primera disponible
+    if (newImages[index].isPrimary) {
+      if (formData.images.length > 0) {
+        const updatedExistingImages = formData.images.map((img, i) => ({
+          ...img,
+          isPrimary: i === 0
+        }));
+        setFormData(prev => ({ ...prev, images: updatedExistingImages }));
+      } else if (updatedNewImages.length > 0) {
+        updatedNewImages[0].isPrimary = true;
+      }
+    }
+    
+    setNewImages(updatedNewImages);
+  };
+
+  // ✅ ESTABLECER IMAGEN PRINCIPAL (EXISTENTE)
+  const setPrimaryExistingImage = (index: number) => {
+    const updatedImages = formData.images.map((img, i) => ({
+      ...img,
+      isPrimary: i === index
+    }));
+    
+    const updatedNewImages = newImages.map(img => ({
+      ...img,
+      isPrimary: false
+    }));
+    
+    setFormData(prev => ({ ...prev, images: updatedImages }));
+    setNewImages(updatedNewImages);
+  };
+
+  // ✅ ESTABLECER IMAGEN PRINCIPAL (NUEVA)
+  const setPrimaryNewImage = (index: number) => {
+    const updatedExistingImages = formData.images.map(img => ({
+      ...img,
+      isPrimary: false
+    }));
+    
+    const updatedNewImages = newImages.map((img, i) => ({
+      ...img,
+      isPrimary: i === index
+    }));
+    
+    setFormData(prev => ({ ...prev, images: updatedExistingImages }));
+    setNewImages(updatedNewImages);
   };
 
   // ✅ MANEJAR CAMBIOS EN INPUTS
@@ -245,15 +370,47 @@ export default function EditarProducto() {
         return;
       }
 
+      // ✅ SUBIR NUEVAS IMÁGENES SI LAS HAY
+      let uploadedImages: any[] = [];
+      if (newImages.length > 0) {
+        const formDataImages = new FormData();
+        newImages.forEach((imageData) => {
+          if (imageData.file) {
+            formDataImages.append('images', imageData.file);
+          }
+        });
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: formDataImages
+        });
+
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          uploadedImages = uploadResult.images.map((img: any, index: number) => ({
+            ...img,
+            isPrimary: newImages[index].isPrimary
+          }));
+        } else {
+          throw new Error('Error al subir las nuevas imágenes');
+        }
+      }
+
       // Calcular stock total
       const totalStock = formData.pricesByWeight.reduce((sum, item) => sum + item.stock, 0);
+
+      // ✅ COMBINAR IMÁGENES EXISTENTES Y NUEVAS
+      const allImages = [...formData.images, ...uploadedImages];
 
       const productData = {
         name: formData.name,
         description: formData.description,
         pricePerKilo: formData.pricePerKilo,
         pricesByWeight: formData.pricesByWeight,
-        images: formData.images,
+        images: allImages,
         category: formData.category,
         categories: formData.categories,
         totalStock,
@@ -304,14 +461,16 @@ export default function EditarProducto() {
             <Link href="/admin/productos" className={styles.backBtn}>
               ← Volver a Productos
             </Link>
-            <h1>✏️ Editar Producto</h1>
+            <div className={styles.headerTitle}>
+              <h1>Editar Producto</h1>
+            </div>
           </div>
         </div>
       </header>
 
       <main className={styles.main}>
         <div className={styles.formContainer}>
-          <form onSubmit={handleSubmit} className={styles.productForm}>
+          <form id="productForm" onSubmit={handleSubmit} className={styles.productForm}>
             <div className={styles.formGrid}>
               {/* Columna izquierda */}
               <div className={styles.formColumn}>
@@ -347,7 +506,7 @@ export default function EditarProducto() {
                   {errors.description && <span className={styles.errorText}>{errors.description}</span>}
                 </div>
 
-                {/* ✅ PRECIO POR KILO CON STEP=10 */}
+                {/* ✅ PRECIO POR KILO CON STEP DE 10 */}
                 <div className={styles.formGroup}>
                   <label htmlFor="pricePerKilo" className={styles.label}>
                     Precio por Kilo (CLP) *
@@ -359,76 +518,100 @@ export default function EditarProducto() {
                     value={formData.pricePerKilo}
                     onChange={handleInputChange}
                     className={`${styles.input} ${errors.pricePerKilo ? styles.inputError : ''}`}
-                    placeholder="0"
+                    placeholder="Ej: 15000"
                     min="0"
                     step="10"
                   />
                   {errors.pricePerKilo && <span className={styles.errorText}>{errors.pricePerKilo}</span>}
+                  <small className={styles.helpText}>
+                    Los precios para otros gramajes se calcularán automáticamente
+                  </small>
                 </div>
 
-                {/* ✅ PRECIOS CALCULADOS Y STOCK */}
-                <div className={styles.pricesSection}>
-                  <h3 className={styles.sectionTitle}>💰 Precios Calculados y Stock</h3>
-                  <div className={styles.pricesGrid}>
-                    {formData.pricesByWeight.map((item, index) => (
-                      <div key={item.weight} className={styles.priceItem}>
-                        <div className={styles.weightLabel}>
-                          {AVAILABLE_WEIGHTS.find(w => w.value === item.weight)?.label}
+                {/* ✅ PRECIOS CALCULADOS AUTOMÁTICAMENTE */}
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    Precios Calculados y Stock *
+                  </label>
+                  <div className={styles.pricesContainer}>
+                    <div className={styles.pricesHeader}>
+                      <span className={styles.headerLabel}>Peso</span>
+                      <span className={styles.headerLabel}>Precio</span>
+                      <span className={styles.headerLabel}>Stock</span>
+                    </div>
+                    {formData.pricesByWeight.map((priceWeight, index) => (
+                      <div key={index} className={styles.priceRow}>
+                        <div className={styles.weightInfo}>
+                          <span className={styles.weightLabel}>
+                            {AVAILABLE_WEIGHTS.find(w => w.value === priceWeight.weight)?.label}
+                          </span>
                         </div>
-                        <div className={styles.priceValue}>
-                          ${item.price.toLocaleString()} CLP
+                        <div className={styles.priceDisplay}>
+                          <span className={styles.calculatedPrice}>
+                            ${formatChileanNumber(priceWeight.price)}
+                          </span>
                         </div>
                         <div className={styles.stockInput}>
-                          <label>Stock:</label>
                           <input
                             type="number"
-                            value={item.stock}
+                            placeholder="Stock"
+                            value={priceWeight.stock}
                             onChange={(e) => handleStockChange(index, parseInt(e.target.value) || 0)}
-                            className={styles.input}
+                            className={styles.stockInputField}
                             min="0"
-                            placeholder="0"
                           />
                         </div>
                       </div>
                     ))}
                   </div>
+                  {errors.stock && <span className={styles.errorText}>{errors.stock}</span>}
                 </div>
 
-                {/* ✅ SELECCIÓN MÚLTIPLE DE CATEGORÍAS */}
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Categorías * (Selecciona una o más)</label>
-                  <div className={styles.categoriesGrid}>
-                    {categories.map(category => (
-                      <label key={category} className={styles.categoryItem}>
-                        <input
-                          type="checkbox"
-                          checked={formData.categories.includes(category)}
-                          onChange={(e) => handleCategoryChange(category, e.target.checked)}
-                          className={styles.categoryCheckbox}
-                        />
-                        <span className={styles.categoryLabel}>{category}</span>
-                      </label>
-                    ))}
+                {/* ✅ NUEVA SECCIÓN PARA MÚLTIPLES CATEGORÍAS */}
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>
+                      Categorías * (Selecciona una o más)
+                    </label>
+                    <div className={styles.categoriesGrid}>
+                      {categories.map(category => (
+                        <label key={category} className={styles.categoryCheckbox}>
+                          <input
+                            type="checkbox"
+                            checked={formData.categories.includes(category)}
+                            onChange={(e) => handleCategoryChange(category, e.target.checked)}
+                            className={styles.checkbox}
+                          />
+                          <span className={styles.categoryLabel}>{category}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {formData.categories.length === 0 && (
+                      <span className={styles.errorText}>Debe seleccionar al menos una categoría</span>
+                    )}
+                    {errors.categories && <span className={styles.errorText}>{errors.categories}</span>}
+                    <small className={styles.helpText}>
+                      Categoría principal: <strong>{formData.category}</strong>
+                    </small>
                   </div>
-                  {errors.categories && <span className={styles.errorText}>{errors.categories}</span>}
-                </div>
 
-                <div className={styles.formGroup}>
-                  <label htmlFor="discount" className={styles.label}>
-                    Descuento (%)
-                  </label>
-                  <input
-                    type="number"
-                    id="discount"
-                    name="discount"
-                    value={formData.discount}
-                    onChange={handleInputChange}
-                    className={`${styles.input} ${errors.discount ? styles.inputError : ''}`}
-                    placeholder="0"
-                    min="0"
-                    max="100"
-                  />
-                  {errors.discount && <span className={styles.errorText}>{errors.discount}</span>}
+                  <div className={styles.formGroup}>
+                    <label htmlFor="discount" className={styles.label}>
+                      Descuento (%)
+                    </label>
+                    <input
+                      type="number"
+                      id="discount"
+                      name="discount"
+                      value={formData.discount}
+                      onChange={handleInputChange}
+                      className={`${styles.input} ${errors.discount ? styles.inputError : ''}`}
+                      placeholder="0"
+                      min="0"
+                      max="100"
+                    />
+                    {errors.discount && <span className={styles.errorText}>{errors.discount}</span>}
+                  </div>
                 </div>
 
                 {/* ✅ OPCIONES DE VISUALIZACIÓN */}
@@ -454,7 +637,7 @@ export default function EditarProducto() {
                         onChange={handleInputChange}
                         className={styles.checkbox}
                       />
-                      <span>Agregar como publicidad (carrusel del inicio)</span>
+                      <span>Mostrar en anuncios del carrusel principal</span>
                     </label>
                     
                     <label className={styles.checkboxLabel}>
@@ -465,71 +648,161 @@ export default function EditarProducto() {
                         onChange={handleInputChange}
                         className={styles.checkbox}
                       />
-                      <span>Agregar al carrusel del producto principal</span>
+                      <span>Mostrar en el carrusel principal</span>
                     </label>
                   </div>
                 </div>
               </div>
 
+              
+
+
+
+
+
+
+
               {/* Columna derecha - Imágenes */}
               <div className={styles.formColumn}>
+                {/* ✅ MÚLTIPLES IMÁGENES */}
                 <div className={styles.formGroup}>
-                  <label className={styles.label}>Imágenes del Producto</label>
-                  <div className={styles.imagesSection}>
-                    {formData.images.length > 0 && (
-                      <div className={styles.imagesList}>
-                        {formData.images.map((image, index) => (
-                          <div key={index} className={styles.imageItem}>
-                            <div className={styles.imagePreview}>
-                              <Image
-                                src={image.url}
-                                alt={`Imagen ${index + 1}`}
-                                width={150}
-                                height={150}
-                                style={{ objectFit: 'cover' }}
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = '/placeholder-product.jpg';
-                                }}
-                              />
-                              {image.isPrimary && (
-                                <div className={styles.primaryBadge}>Principal</div>
-                              )}
-                            </div>
-                            <div className={styles.imageInfo}>
-                              <p className={styles.imageName}>{image.originalName}</p>
-                              <p className={styles.imageSize}>
-                                {(image.size / 1024 / 1024).toFixed(2)} MB
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {formData.images.length === 0 && (
-                      <div className={styles.noImages}>
-                        <span>📷</span>
-                        <p>No hay imágenes cargadas</p>
-                        <p className={styles.note}>Las imágenes se gestionan desde la creación del producto</p>
-                      </div>
-                    )}
-                  </div>
+                  <label htmlFor="images" className={styles.label}>
+                    Imágenes del Producto * (Máximo 6)
+                  </label>
+                  <input
+                    type="file"
+                    id="images"
+                    multiple
+                    accept=".svg,.jpg,.jpeg,.png,.webp,image/svg+xml,image/jpeg,image/png,image/webp"
+                    onChange={handleImageChange}
+                    className={`${styles.fileInput} ${errors.images ? styles.inputError : ''}`}
+                  />
+                  {errors.images && <span className={styles.errorText}>{errors.images}</span>}
+                  <small className={styles.helpText}>
+                    Formatos: SVG, JPG, PNG, WebP. Máximo 5MB por imagen.
+                  </small>
                 </div>
+
+                {/* ✅ PREVIEW DE IMÁGENES EXISTENTES */}
+                {formData.images.length > 0 && (
+                  <div className={styles.imagesGrid}>
+                    <label className={styles.label}>Imágenes Existentes ({formData.images.length}/6)</label>
+                    <div className={styles.imagesList}>
+                      {formData.images.map((imageData, index) => (
+                        <div key={index} className={styles.imageItem}>
+                          <div className={styles.imageContainer}>
+                            <Image
+                              src={imageData.url || '/placeholder-image.jpg'}
+                              alt={`Imagen ${index + 1}`}
+                              width={150}
+                              height={100}
+                              className={styles.previewImage}
+                            />
+                            {imageData.isPrimary && (
+                              <span className={styles.primaryBadge}>Principal</span>
+                            )}
+                          </div>
+                          <div className={styles.imageInfo}>
+                            <span className={styles.imageName}>{imageData.originalName}</span>
+                            <span className={styles.imageSize}>({(imageData.size / 1024 / 1024).toFixed(2)} MB)</span>
+                          </div>
+                          <div className={styles.imageActions}>
+                            {!imageData.isPrimary && (
+                              <button
+                                type="button"
+                                onClick={() => setPrimaryExistingImage(index)}
+                                className={styles.primaryBtn}
+                                title="Establecer como imagen principal"
+                              >
+                                ⭐
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeExistingImage(index)}
+                              className={styles.removeBtn}
+                              title="Eliminar imagen"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ✅ PREVIEW DE NUEVAS IMÁGENES */}
+                {newImages.length > 0 && (
+                  <div className={styles.imagesGrid}>
+                    <label className={styles.label}>Nuevas Imágenes ({newImages.length}/6)</label>
+                    <div className={styles.imagesList}>
+                      {newImages.map((imageData, index) => (
+                        <div key={`new-${index}`} className={styles.imageItem}>
+                          <div className={styles.imageContainer}>
+                            <Image
+                              src={imageData.preview || '/placeholder-image.jpg'}
+                              alt={`Nueva imagen ${index + 1}`}
+                              width={150}
+                              height={100}
+                              className={styles.previewImage}
+                            />
+                            {imageData.isPrimary && (
+                              <span className={styles.primaryBadge}>Principal</span>
+                            )}
+                          </div>
+                          <div className={styles.imageInfo}>
+                            <span className={styles.imageName}>{imageData.originalName}</span>
+                            <span className={styles.imageSize}>({(imageData.size / 1024 / 1024).toFixed(2)} MB)</span>
+                          </div>
+                          <div className={styles.imageActions}>
+                            {!imageData.isPrimary && (
+                              <button
+                                type="button"
+                                onClick={() => setPrimaryNewImage(index)}
+                                className={styles.primaryBtn}
+                                title="Establecer como imagen principal"
+                              >
+                                ⭐
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeNewImage(index)}
+                              className={styles.removeBtn}
+                              title="Eliminar imagen"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ✅ PLACEHOLDER CUANDO NO HAY IMÁGENES */}
+                {formData.images.length === 0 && newImages.length === 0 && (
+                  <div className={styles.noImages}>
+                    <span>📷</span>
+                    <p>No hay imágenes subidas</p>
+                    <small>Selecciona archivos para ver la vista previa</small>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Botones */}
-            <div className={styles.formActions}>
+            {/* ✅ BOTONES DE ACCIÓN */}
+            <div className={styles.submitSection}>
               <Link href="/admin/productos" className={styles.cancelBtn}>
                 Cancelar
               </Link>
-              <button
-                type="submit"
-                disabled={saving}
+              <button 
+                type="submit" 
                 className={styles.submitBtn}
+                disabled={saving}
               >
-                {saving ? '🔄 Guardando...' : '💾 Guardar Cambios'}
+                {saving ? 'Guardando...' : 'Guardar Cambios'}
               </button>
             </div>
           </form>

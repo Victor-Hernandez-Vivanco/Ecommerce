@@ -27,6 +27,11 @@
   gap: 0.5rem;
 }
 
+.headerTitle {
+  text-align: right;
+  padding: 0 50rem;
+}
+
 .backBtn {
   color: #3182ce;
   text-decoration: none;
@@ -170,6 +175,7 @@
 
 .createFirstBtn:hover {
   background: #2f855a;
+  color: white;
 }
 
 .productsGrid {
@@ -653,25 +659,6 @@
   color: #666;
   margin-bottom: 2rem;
   font-size: 1.1rem;
-}
-
-.createFirstBtn {
-  display: inline-block;
-  background: linear-gradient(135deg, #8B4513, #A0522D);
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
-}
-
-.createFirstBtn:hover {
-  background: linear-gradient(135deg, #A0522D, #8B4513);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
 }
 
 /* Sin resultados */

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import styles from './dashboard.module.css';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import styles from "./dashboard.module.css";
 
 // Interfaz para el tipo de admin
 interface AdminData {
@@ -31,44 +31,47 @@ export default function AdminDashboard() {
     totalUsers: 0,
     lowStockProducts: 0,
     totalAdvertisements: 0,
-    activeAdvertisements: 0
+    activeAdvertisements: 0,
   });
   const router = useRouter();
 
   useEffect(() => {
     const checkAdminAuth = async () => {
       try {
-        const adminToken = localStorage.getItem('admin-token');
-        
-        console.log('🔍 Verificando token admin:', adminToken ? 'Existe' : 'No existe');
+        const adminToken = localStorage.getItem("admin-token");
+
+        console.log(
+          "🔍 Verificando token admin:",
+          adminToken ? "Existe" : "No existe"
+        );
 
         if (!adminToken) {
-          console.log('❌ No hay token admin, redirigiendo...');
-          router.push('/admin/login');
+          console.log("❌ No hay token admin, redirigiendo...");
+          router.push("/admin/login");
           return;
         }
 
-        const response = await fetch('/api/admin/verify', {
+        const response = await fetch("/api/admin/verify", {
           headers: {
-            'Authorization': `Bearer ${adminToken}`
-          }
+            Authorization: `Bearer ${adminToken}`,
+          },
         });
 
         if (!response.ok) {
-          console.log('❌ Token inválido, redirigiendo...');
-          localStorage.removeItem('admin-token');
-          router.push('/admin/login');
+          console.log("❌ Token inválido, redirigiendo...");
+          localStorage.removeItem("admin-token");
+          router.push("/admin/login");
           return;
         }
 
         const data = await response.json();
         setAdminData(data.admin);
-        
+
         // Cargar estadísticas
         await loadStats();
       } catch (error) {
-        console.error('Error verificando autenticación:', error);
-        router.push('/admin/login');
+        console.error("Error verificando autenticación:", error);
+        router.push("/admin/login");
       } finally {
         setLoading(false);
       }
@@ -79,19 +82,19 @@ export default function AdminDashboard() {
 
   const loadStats = async () => {
     try {
-      const response = await fetch('/api/admin/stats');
+      const response = await fetch("/api/admin/stats");
       if (response.ok) {
         const data = await response.json();
         setStats(data.stats);
       }
     } catch (error) {
-      console.error('Error cargando estadísticas:', error);
+      console.error("Error cargando estadísticas:", error);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('admin-token');
-    router.push('/admin/login');
+    localStorage.removeItem("admin-token");
+    router.push("/admin/login");
   };
 
   if (loading) {
@@ -120,17 +123,17 @@ export default function AdminDashboard() {
                 </div>
                 <div className={styles.adminDetails}>
                   <span className={styles.adminName}>
-                    {adminData?.username || 'Administrador'}
+                    {adminData?.username || "Administrador"}
                   </span>
                   <span className={styles.adminRole}>Admin</span>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={handleLogout}
                 className={styles.logoutBtn}
                 title="Cerrar Sesión"
               >
-                🚪 Cerrar Sesión
+                Cerrar Sesión
               </button>
             </div>
           </div>
@@ -139,7 +142,7 @@ export default function AdminDashboard() {
 
       <main className={styles.main}>
         {/* Estadísticas */}
-        <section className={styles.statsSection}>
+        {/* <section className={styles.statsSection}>
           <h2>Estadísticas</h2>
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>
@@ -174,13 +177,16 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Acciones Principales */}
         <section className={styles.actionsSection}>
           <h2>Gestión Principal</h2>
           <div className={styles.actionsGrid}>
-            <Link href="/admin/productos" className={`${styles.actionCard} ${styles.primaryAction}`}>
+            <Link
+              href="/admin/productos"
+              className={`${styles.actionCard} ${styles.primaryAction}`}
+            >
               <div className={styles.actionHeader}>
                 <span className={styles.actionBadge}>Principal</span>
               </div>
@@ -193,7 +199,10 @@ export default function AdminDashboard() {
               </div>
             </Link>
 
-            <Link href="/admin/carrusel" className={`${styles.actionCard} ${styles.primaryAction}`}>
+            <Link
+              href="/admin/carrusel"
+              className={`${styles.actionCard} ${styles.primaryAction}`}
+            >
               <div className={styles.actionHeader}>
                 <span className={styles.actionBadge}>Nuevo</span>
               </div>
@@ -231,8 +240,11 @@ export default function AdminDashboard() {
                 <span>✓ Análisis de stock</span>
               </div>
             </div>
-            
-            <Link href="/admin/categorias" className={`${styles.actionCard} ${styles.primaryAction}`}>
+
+            <Link
+              href="/admin/categorias"
+              className={`${styles.actionCard} ${styles.primaryAction}`}
+            >
               <div className={styles.actionHeader}>
                 <span className={styles.actionBadge}>Nuevo</span>
               </div>
@@ -248,7 +260,7 @@ export default function AdminDashboard() {
         </section>
 
         {/* Acciones Rápidas */}
-        <section className={styles.quickActionsSection}>
+        {/* <section className={styles.quickActionsSection}>
           <h2>Acciones Rápidas</h2>
           <div className={styles.quickActionsGrid}>
             <Link href="/admin/productos/crear" className={styles.quickAction}>
@@ -276,7 +288,7 @@ export default function AdminDashboard() {
               <span>Gestionar Categorías</span>
             </Link>
           </div>
-        </section>
+        </section> */}
       </main>
     </div>
   );
