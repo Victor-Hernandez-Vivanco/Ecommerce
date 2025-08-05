@@ -5,7 +5,7 @@ import fs from 'fs';
 // Cargar configuración de producción
 dotenv.config({ path: '.env.production.local' });
 
-const LOCAL_URI = 'mongodb://localhost:27017/frutos-secos-local';
+const LOCAL_URI = 'mongodb://localhost:27017/planzzz';
 const ATLAS_URI = process.env.MONGODB_URI;
 
 if (!ATLAS_URI) {
@@ -14,15 +14,55 @@ if (!ATLAS_URI) {
 }
 
 // Modelos (importar desde tu proyecto)
+// Reemplaza el ProductSchema actual (líneas 17-26) con:
+const PriceByWeightSchema = new mongoose.Schema({
+  weight: { type: Number, required: true },
+  price: { type: Number, required: true, min: 0 },
+  stock: { type: Number, required: true, default: 0, min: 0 }
+}, { _id: false });
+
+const ProductImageSchema = new mongoose.Schema({
+  url: { type: String, required: true },
+  originalName: { type: String, required: true },
+  size: { type: Number, required: true },
+  mimeType: { type: String, required: true },
+  uploadDate: { type: Date, default: Date.now },
+  isPrimary: { type: Boolean, default: false }
+}, { _id: false });
+
 const ProductSchema = new mongoose.Schema({
-  name: String,
-  description: String,
-  price: Number,
-  category: String,
-  images: [String],
-  stock: Number,
-  featured: Boolean,
-  createdAt: { type: Date, default: Date.now }
+  name: { type: String, required: true, trim: true },
+  description: { type: String, required: true },
+  pricesByWeight: {
+    type: [PriceByWeightSchema],
+    required: true
+  },
+  pricePerKilo: { type: Number, required: true, min: 0 },
+  images: {
+    type: [ProductImageSchema],
+    required: true
+  },
+  image: { type: String, required: false },
+  basePricePer100g: { type: Number, required: false, min: 0 },
+  category: {
+    type: String,
+    required: true,
+    enum: ["Frutos Secos", "Frutas Deshidratadas", "Despensa", "Semillas", "Mix", "Cereales", "Snack", "Full", "Box"]
+  },
+  categories: { type: [String], required: false },
+  totalStock: { type: Number, default: 0, min: 0 },
+  featured: { type: Boolean, default: false },
+  isAdvertisement: { type: Boolean, default: false },
+  isMainCarousel: { type: Boolean, default: false },
+  discount: { type: Number, default: 0, min: 0, max: 100 },
+  nutritionalInfo: {
+    calories: Number,
+    protein: Number,
+    fats: Number,
+    carbs: Number
+  },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 const CategorySchema = new mongoose.Schema({
@@ -82,20 +122,77 @@ async function syncToAtlas() {
       console.log(`✅ ${localCategories.length} categorías sincronizadas`);
     }
     
-    // Sincronizar Productos
+    // Sincronizar Productos (reemplaza las líneas 125-131)
     console.log('🛍️ Sincronizando productos...');
-    const localProducts = await LocalProduct.find({});
-    if (localProducts.length > 0) {
-      await AtlasProduct.deleteMany({});
-      await AtlasProduct.insertMany(localProducts.map(prod => prod.toObject()));
-      console.log(`✅ ${localProducts.length} productos sincronizados`);
+    try {
+      const localProducts = await LocalProduct.find({});
+      console.log(`📊 Productos encontrados en local: ${localProducts.length}`);
+      
+      if (localProducts.length > 0) {
+        // Validar productos antes de sincronizar
+        console.log('🔍 Validando productos...');
+        for (let i = 0; i < localProducts.length; i++) {
+          const product = localProducts[i];
+          console.log(`   - Producto ${i + 1}: ${product.name}`);
+          
+          // Verificar campos requeridos
+          if (!product.pricesByWeight || product.pricesByWeight.length === 0) {
+            console.warn(`   ⚠️  Producto "${product.name}" no tiene pricesByWeight válido`);
+          }
+          if (!product.images || product.images.length === 0) {
+            console.warn(`   ⚠️  Producto "${product.name}" no tiene imágenes válidas`);
+          }
+        }
+        
+        console.log('🗑️ Eliminando productos existentes en Atlas...');
+        const deleteResult = await AtlasProduct.deleteMany({});
+        console.log(`   Eliminados: ${deleteResult.deletedCount} productos`);
+        
+        console.log('📤 Insertando productos en Atlas...');
+        
+        // Insertar uno por uno para mejor control de errores
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (const product of localProducts) {
+          try {
+            const productObj = product.toObject();
+            delete productObj._id; // Eliminar _id para evitar conflictos
+            
+            await AtlasProduct.create(productObj);
+            successCount++;
+            console.log(`   ✅ "${product.name}" sincronizado`);
+          } catch (productError) {
+            errorCount++;
+            console.error(`   ❌ Error sincronizando "${product.name}":`, productError.message);
+            
+            // Log detallado del producto problemático
+            console.log('   📋 Datos del producto problemático:', {
+              name: product.name,
+              hasImages: product.images?.length || 0,
+              hasPricesByWeight: product.pricesByWeight?.length || 0,
+              category: product.category
+            });
+          }
+        }
+        
+        console.log(`✅ Productos sincronizados: ${successCount}/${localProducts.length}`);
+        if (errorCount > 0) {
+          console.log(`❌ Productos con errores: ${errorCount}`);
+        }
+      } else {
+        console.log('📭 No hay productos para sincronizar');
+      }
+    } catch (error) {
+      console.error('❌ Error general en sincronización de productos:', error);
+      throw error;
     }
     
     // Sincronizar Usuarios (solo admins)
     console.log('👥 Sincronizando usuarios administradores...');
+    // Líneas 190-202 - Cambiar de:
     const localAdmins = await LocalUser.find({ role: 'admin' });
     if (localAdmins.length > 0) {
-      // No eliminar todos los usuarios, solo sincronizar admins
       for (const admin of localAdmins) {
         await AtlasUser.findOneAndUpdate(
           { email: admin.email },
@@ -104,6 +201,19 @@ async function syncToAtlas() {
         );
       }
       console.log(`✅ ${localAdmins.length} administradores sincronizados`);
+    }
+    
+    // A:
+    const localUsers = await LocalUser.find({});
+    if (localUsers.length > 0) {
+      for (const user of localUsers) {
+        await AtlasUser.findOneAndUpdate(
+          { email: user.email },
+          user.toObject(),
+          { upsert: true }
+        );
+      }
+      console.log(`✅ ${localUsers.length} usuarios sincronizados`);
     }
     
     // Sincronizar Anuncios
