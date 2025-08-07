@@ -8,7 +8,7 @@
   
   /* Colores Secundarios */
   --secondary-color: #4CAF50;
-  --secondary-dark: #388E3C;
+  --secondary-dark: #28a745;
   --accent-color: #FF9800;
   --accent-dark: #e62300;
   
@@ -19,7 +19,7 @@
   /* Colores de Texto */
   --text-primary: #2C2C2C;
   --text-secondary: #666666;
-  --text-light: #999999;
+  --text-light: #666;
   
   /* Colores de Borde y Sombra */
   --border-color: #E0E0E0;
@@ -139,6 +139,21 @@ body {
   left: 10px;
   z-index: 2;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge de descuento */
+.discountBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--secondary-color);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 5;
+  box-shadow: 0 2px 8px var(--secondary-color);
 }
 
 /* Botones de acción estilo Piwén */

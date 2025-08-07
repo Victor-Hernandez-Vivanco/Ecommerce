@@ -301,18 +301,7 @@ Si tienes alguna pregunta o necesitas ayuda:
 
 ---
 
-## 🚀 Tu Workflow Directo
-
-Como ya tienes los archivos de configuración, puedes ir directo a:
-
-### 1. Verificar Configuración
-
-```bash
-# Probar conexión a Atlas
-node test-atlas-connection.js
-```
-
-### 2. Workflow de Desarrollo
+## 🚀 Tu Workflow de Desarrollo Directo
 
 ```bash
 # Desarrollar localmente

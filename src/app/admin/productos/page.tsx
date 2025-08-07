@@ -423,7 +423,7 @@ export default function ProductosAdmin() {
                     {/* Acciones */}
                     <div className={styles.listCell}>
                       <div className={styles.actionsList}>
-                        <button
+                        {/* <button
                           onClick={() => toggleFeatured(product)}
                           className={`${styles.actionBtn} ${
                             product.featured ? styles.featured : styles.notFeatured
@@ -431,7 +431,7 @@ export default function ProductosAdmin() {
                           title={product.featured ? 'Quitar de destacados' : 'Marcar como destacado'}
                         >
                           ⭐
-                        </button>
+                        </button> */}
                         
                         <Link
                           href={`/admin/productos/editar/${product._id}`}
