@@ -21,8 +21,9 @@ export function middleware(request: NextRequest) {
   const ip = getClientIP(request);
   const now = Date.now();
   
-  // Rate limiting para APIs
-  if (request.nextUrl.pathname.startsWith('/api/')) {
+  // Rate limiting para APIs (EXCLUIR /api/categories)
+  if (request.nextUrl.pathname.startsWith('/api/') && 
+      !request.nextUrl.pathname.startsWith('/api/categories')) {
     const windowMs = 15 * 60 * 1000; // 15 minutos
     const maxRequests = request.nextUrl.pathname.includes('/auth/') ? 5 : 100;
     
