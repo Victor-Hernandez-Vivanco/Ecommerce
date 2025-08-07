@@ -31,10 +31,6 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
       console.log('🔍 [CategoriesContext] Response ok:', response.ok);
       console.log('🔍 [CategoriesContext] Response headers:', Object.fromEntries(response.headers.entries()));
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
       const data = await response.json();
       console.log('🔍 [CategoriesContext] Response data:', data);
       
