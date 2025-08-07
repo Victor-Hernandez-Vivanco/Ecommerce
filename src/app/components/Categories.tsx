@@ -1,5 +1,14 @@
 "use client";
 
+// Componente Categories
+// Este componente muestra una sección con categorías de productos.
+// Utiliza el contexto CategoriesContext para obtener las categorías y su estado (cargando, error).
+// Si está cargando, muestra un indicador de carga.
+// Si hay un error, muestra un mensaje de error.
+// Si las categorías se cargan correctamente, muestra una cuadrícula con tarjetas de categoría.
+// Cada tarjeta contiene una imagen, un texto curvo y un enlace a la página de productos de la categoría.
+
+
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./Categories.module.css";
