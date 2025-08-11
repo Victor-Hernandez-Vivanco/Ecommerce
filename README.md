@@ -179,30 +179,6 @@ web_frutos_secos/
 │ └── advertisements/ # Imágenes de anuncios
 └── package.json # Dependencias y scripts
 
-## 🚀 Scripts Disponibles
-
-```bash
-# Desarrollo
-npm run dev          # Ejecutar en modo desarrollo
-npm run build        # Construir para producción
-npm run start        # Ejecutar en producción
-npm run lint         # Linter de código
-```
-
-## 🔧 Configuración Inicial
-
-### Crear Administrador
-
-Una vez desplegada la aplicación, puedes crear un administrador usando la API:
-
-```bash
-# Credenciales por defecto
-Email: admin@frutossecos.com
-Password: admin123
-```
-
-## 📊 Características Técnicas
-
 ### Seguridad
 
 - Autenticación JWT con expiración automática
@@ -261,24 +237,20 @@ Password: admin123
 4. Push a la rama (`git push origin feature/NuevaFuncionalidad`)
 5. Abre un Pull Request
 
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
 ## 👨‍💻 Autor
 
 **Victor Hernández Vivanco**
 
 - GitHub: [@Victor-Hernandez-Vivanco](https://github.com/Victor-Hernandez-Vivanco)
-- Email: victor.hernandez@ejemplo.com
+- Email: victorhernandezvivanco75@gmail.com
 
 ## 📞 Soporte
 
 Si tienes alguna pregunta o necesitas ayuda:
 
-- 📧 Email: soporte@frutossecos.com
-- 🐛 Issues: [GitHub Issues](https://github.com/tu-usuario/web_frutos_secos/issues)
-- 📖 Documentación: [Wiki del Proyecto](https://github.com/tu-usuario/web_frutos_secos/wiki)
+- 📧 Email: victorhernandezvivanco75@gmail.com
+- 🐛 Issues: [GitHub Issues](https://github.com/Victor-Hernandez-Vivanco/web_frutos_secos/issues)
+- 📖 Documentación: [Wiki del Proyecto](https://github.com/Victor-Hernandez-Vivanco/web_frutos_secos/wiki)
 
 ## 🎯 Roadmap
 
@@ -307,11 +279,14 @@ Si tienes alguna pregunta o necesitas ayuda:
 # Desarrollar localmente
 npm run dev
 
-# Cuando estés listo para sincronizar
-node sync-to-atlas.js
+# 1. Sincronizar todo a Atlas
+npm run sync:to-atlas
 
-# Verificar sincronización
-node verify-sync.js
+# 2. Verificar sincronización
+npm run verify:sync
+
+# 3. O hacer ambos de una vez
+npm run deploy:full
 
 # Deploy a producción
 git add .

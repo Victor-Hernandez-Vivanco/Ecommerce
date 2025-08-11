@@ -7,7 +7,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sync:to-atlas": "node sync-to-atlas.js",
+    "verify:sync": "node verify-sync.js",
+    "deploy:full": "npm run sync:to-atlas && npm run verify:sync"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.0.0",

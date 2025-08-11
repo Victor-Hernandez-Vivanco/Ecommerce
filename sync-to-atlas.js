@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import fs from 'fs';
 
 // Cargar configuración de producción
 dotenv.config({ path: '.env.production.local' });
@@ -13,8 +12,7 @@ if (!ATLAS_URI) {
   process.exit(1);
 }
 
-// Modelos (importar desde tu proyecto)
-// Reemplaza el ProductSchema actual (líneas 17-26) con:
+// ✅ ESQUEMAS ACTUALIZADOS PARA COINCIDIR CON LA APLICACIÓN
 const PriceByWeightSchema = new mongoose.Schema({
   weight: { type: Number, required: true },
   price: { type: Number, required: true, min: 0 },
@@ -33,15 +31,9 @@ const ProductImageSchema = new mongoose.Schema({
 const ProductSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   description: { type: String, required: true },
-  pricesByWeight: {
-    type: [PriceByWeightSchema],
-    required: true
-  },
+  pricesByWeight: { type: [PriceByWeightSchema], required: true },
   pricePerKilo: { type: Number, required: true, min: 0 },
-  images: {
-    type: [ProductImageSchema],
-    required: true
-  },
+  images: { type: [ProductImageSchema], required: true },
   image: { type: String, required: false },
   basePricePer100g: { type: Number, required: false, min: 0 },
   category: {
@@ -66,28 +58,52 @@ const ProductSchema = new mongoose.Schema({
 });
 
 const CategorySchema = new mongoose.Schema({
-  name: String,
-  slug: String,
-  image: String,
-  color: String,
-  createdAt: { type: Date, default: Date.now }
+  name: { type: String, required: true },
+  slug: { type: String, required: true, unique: true },
+  image: { type: String, required: true },
+  color: { type: String, default: '#4299e1' },
+  order: { type: Number, default: 0 },
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 const UserSchema = new mongoose.Schema({
-  email: String,
-  password: String,
-  name: String,
-  role: { type: String, default: 'user' },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  name: { type: String, required: true },
+  role: { type: String, default: 'user', enum: ['user', 'admin'] },
   createdAt: { type: Date, default: Date.now }
 });
 
+// ✅ ESQUEMA CORRECTO DE ADVERTISEMENT
+const AdvertisementImageSchema = new mongoose.Schema({
+  url: { type: String, required: true },
+  originalName: { type: String, required: true },
+  size: { type: Number, required: true },
+  mimeType: { type: String, required: true },
+  uploadDate: { type: Date, default: Date.now }
+}, { _id: false });
+
 const AdvertisementSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  image: String,
-  link: String,
-  active: Boolean,
-  createdAt: { type: Date, default: Date.now }
+  title: { type: String, required: true, trim: true, maxlength: 100 },
+  description: { type: String, required: false, maxlength: 200 },
+  image: { type: AdvertisementImageSchema, required: false },
+  imageUrl: { type: String, required: false },
+  linkUrl: { type: String, required: false },
+  order: { type: Number, default: 0, min: 0 },
+  isActive: { type: Boolean, default: true },
+  type: {
+    type: String,
+    enum: ["product", "promotion", "external", "announcement"],
+    default: "promotion"
+  },
+  startDate: { type: Date, required: false },
+  endDate: { type: Date, required: false },
+  views: { type: Number, default: 0, min: 0 },
+  clicks: { type: Number, default: 0, min: 0 },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 async function syncToAtlas() {
@@ -113,116 +129,87 @@ async function syncToAtlas() {
     const AtlasUser = atlasConn.model('User', UserSchema);
     const AtlasAdvertisement = atlasConn.model('Advertisement', AdvertisementSchema);
     
-    // Sincronizar Categorías
+    // ✅ SINCRONIZAR CATEGORÍAS
     console.log('📂 Sincronizando categorías...');
     const localCategories = await LocalCategory.find({});
     if (localCategories.length > 0) {
       await AtlasCategory.deleteMany({});
-      await AtlasCategory.insertMany(localCategories.map(cat => cat.toObject()));
+      const categoriesToSync = localCategories.map(cat => {
+        const obj = cat.toObject();
+        delete obj._id;
+        return obj;
+      });
+      await AtlasCategory.insertMany(categoriesToSync);
       console.log(`✅ ${localCategories.length} categorías sincronizadas`);
+    } else {
+      console.log('📭 No hay categorías para sincronizar');
     }
     
-    // Sincronizar Productos (reemplaza las líneas 125-131)
+    // ✅ SINCRONIZAR PRODUCTOS
     console.log('🛍️ Sincronizando productos...');
-    try {
-      const localProducts = await LocalProduct.find({});
+    const localProducts = await LocalProduct.find({});
+    if (localProducts.length > 0) {
       console.log(`📊 Productos encontrados en local: ${localProducts.length}`);
       
-      if (localProducts.length > 0) {
-        // Validar productos antes de sincronizar
-        console.log('🔍 Validando productos...');
-        for (let i = 0; i < localProducts.length; i++) {
-          const product = localProducts[i];
-          console.log(`   - Producto ${i + 1}: ${product.name}`);
+      await AtlasProduct.deleteMany({});
+      
+      let successCount = 0;
+      let errorCount = 0;
+      
+      for (const product of localProducts) {
+        try {
+          const productObj = product.toObject();
+          delete productObj._id;
           
-          // Verificar campos requeridos
-          if (!product.pricesByWeight || product.pricesByWeight.length === 0) {
-            console.warn(`   ⚠️  Producto "${product.name}" no tiene pricesByWeight válido`);
-          }
-          if (!product.images || product.images.length === 0) {
-            console.warn(`   ⚠️  Producto "${product.name}" no tiene imágenes válidas`);
-          }
+          await AtlasProduct.create(productObj);
+          successCount++;
+          console.log(`   ✅ "${product.name}" sincronizado`);
+        } catch (productError) {
+          errorCount++;
+          console.error(`   ❌ Error sincronizando "${product.name}":`, productError.message);
         }
-        
-        console.log('🗑️ Eliminando productos existentes en Atlas...');
-        const deleteResult = await AtlasProduct.deleteMany({});
-        console.log(`   Eliminados: ${deleteResult.deletedCount} productos`);
-        
-        console.log('📤 Insertando productos en Atlas...');
-        
-        // Insertar uno por uno para mejor control de errores
-        let successCount = 0;
-        let errorCount = 0;
-        
-        for (const product of localProducts) {
-          try {
-            const productObj = product.toObject();
-            delete productObj._id; // Eliminar _id para evitar conflictos
-            
-            await AtlasProduct.create(productObj);
-            successCount++;
-            console.log(`   ✅ "${product.name}" sincronizado`);
-          } catch (productError) {
-            errorCount++;
-            console.error(`   ❌ Error sincronizando "${product.name}":`, productError.message);
-            
-            // Log detallado del producto problemático
-            console.log('   📋 Datos del producto problemático:', {
-              name: product.name,
-              hasImages: product.images?.length || 0,
-              hasPricesByWeight: product.pricesByWeight?.length || 0,
-              category: product.category
-            });
-          }
-        }
-        
-        console.log(`✅ Productos sincronizados: ${successCount}/${localProducts.length}`);
-        if (errorCount > 0) {
-          console.log(`❌ Productos con errores: ${errorCount}`);
-        }
-      } else {
-        console.log('📭 No hay productos para sincronizar');
       }
-    } catch (error) {
-      console.error('❌ Error general en sincronización de productos:', error);
-      throw error;
+      
+      console.log(`✅ Productos sincronizados: ${successCount}/${localProducts.length}`);
+      if (errorCount > 0) {
+        console.log(`❌ Productos con errores: ${errorCount}`);
+      }
+    } else {
+      console.log('📭 No hay productos para sincronizar');
     }
     
-    // Sincronizar Usuarios (solo admins)
-    console.log('👥 Sincronizando usuarios administradores...');
-    // Líneas 190-202 - Cambiar de:
-    const localAdmins = await LocalUser.find({ role: 'admin' });
-    if (localAdmins.length > 0) {
-      for (const admin of localAdmins) {
-        await AtlasUser.findOneAndUpdate(
-          { email: admin.email },
-          admin.toObject(),
-          { upsert: true }
-        );
-      }
-      console.log(`✅ ${localAdmins.length} administradores sincronizados`);
-    }
-    
-    // A:
+    // ✅ SINCRONIZAR USUARIOS
+    console.log('👥 Sincronizando usuarios...');
     const localUsers = await LocalUser.find({});
     if (localUsers.length > 0) {
       for (const user of localUsers) {
+        const userObj = user.toObject();
+        delete userObj._id;
         await AtlasUser.findOneAndUpdate(
           { email: user.email },
-          user.toObject(),
+          userObj,
           { upsert: true }
         );
       }
       console.log(`✅ ${localUsers.length} usuarios sincronizados`);
+    } else {
+      console.log('📭 No hay usuarios para sincronizar');
     }
     
-    // Sincronizar Anuncios
-    console.log('📢 Sincronizando anuncios...');
+    // ✅ SINCRONIZAR ADVERTISEMENTS
+    console.log('📢 Sincronizando advertisements...');
     const localAds = await LocalAdvertisement.find({});
     if (localAds.length > 0) {
       await AtlasAdvertisement.deleteMany({});
-      await AtlasAdvertisement.insertMany(localAds.map(ad => ad.toObject()));
-      console.log(`✅ ${localAds.length} anuncios sincronizados`);
+      const adsToSync = localAds.map(ad => {
+        const obj = ad.toObject();
+        delete obj._id;
+        return obj;
+      });
+      await AtlasAdvertisement.insertMany(adsToSync);
+      console.log(`✅ ${localAds.length} advertisements sincronizados`);
+    } else {
+      console.log('📭 No hay advertisements para sincronizar');
     }
     
     console.log('\n🎉 ¡Sincronización completada exitosamente!');

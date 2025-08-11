@@ -4,14 +4,8 @@ import dotenv from 'dotenv';
 // Cargar configuración de producción
 dotenv.config({ path: '.env.production.local' });
 
-// CORREGIDO: Usar el nombre correcto de la base local
 const LOCAL_URI = 'mongodb://localhost:27017/planzzz';
 const ATLAS_URI = process.env.MONGODB_URI;
-
-if (!ATLAS_URI) {
-  console.error('❌ Error: MONGODB_URI no encontrado en .env.production.local');
-  process.exit(1);
-}
 
 async function verifySync() {
   try {
@@ -21,45 +15,70 @@ async function verifySync() {
     const localConn = await mongoose.createConnection(LOCAL_URI);
     const atlasConn = await mongoose.createConnection(ATLAS_URI);
     
-    // CORREGIDO: Usar nombres correctos de las bases de datos
-    const localDb = localConn.getClient().db('planzzz');
-    const atlasDb = atlasConn.getClient().db('frutos-secos');
+    // Esquemas simples para conteo
+    const simpleSchema = new mongoose.Schema({}, { strict: false });
     
-    const collections = ['products', 'categories', 'users', 'advertisements'];
+    const LocalProduct = localConn.model('Product', simpleSchema);
+    const LocalCategory = localConn.model('Category', simpleSchema);
+    const LocalUser = localConn.model('User', simpleSchema);
+    const LocalAdvertisement = localConn.model('Advertisement', simpleSchema);
     
-    console.log('\n📊 Comparación de documentos:');
-    console.log('─'.repeat(50));
+    const AtlasProduct = atlasConn.model('Product', simpleSchema);
+    const AtlasCategory = atlasConn.model('Category', simpleSchema);
+    const AtlasUser = atlasConn.model('User', simpleSchema);
+    const AtlasAdvertisement = atlasConn.model('Advertisement', simpleSchema);
     
-    let allMatch = true;
+    // Verificar conteos
+    const localCounts = {
+      products: await LocalProduct.countDocuments(),
+      categories: await LocalCategory.countDocuments(),
+      users: await LocalUser.countDocuments(),
+      advertisements: await LocalAdvertisement.countDocuments()
+    };
     
-    for (const collection of collections) {
-      const localCount = await localDb.collection(collection).countDocuments();
-      const atlasCount = await atlasDb.collection(collection).countDocuments();
-      
-      const status = localCount === atlasCount ? '✅' : '❌';
-      if (localCount !== atlasCount) allMatch = false;
-      
-      console.log(`${status} ${collection.padEnd(15)} | Local: ${localCount.toString().padStart(3)} | Atlas: ${atlasCount.toString().padStart(3)}`);
-    }
+    const atlasCounts = {
+      products: await AtlasProduct.countDocuments(),
+      categories: await AtlasCategory.countDocuments(),
+      users: await AtlasUser.countDocuments(),
+      advertisements: await AtlasAdvertisement.countDocuments()
+    };
     
-    console.log('─'.repeat(50));
+    console.log('\n📊 RESUMEN DE SINCRONIZACIÓN:');
+    console.log('┌─────────────────┬─────────┬─────────┬──────────┐');
+    console.log('│ Colección       │ Local   │ Atlas   │ Estado   │');
+    console.log('├─────────────────┼─────────┼─────────┼──────────┤');
     
-    if (allMatch) {
-      console.log('🎉 ¡Perfecto! Todos los datos están sincronizados');
-      console.log('✅ Listo para deploy a producción');
-    } else {
-      console.log('⚠️ Hay diferencias en los datos');
-      console.log('🔄 Considera ejecutar sync-to-atlas.js nuevamente');
-    }
+    Object.keys(localCounts).forEach(key => {
+      const local = localCounts[key];
+      const atlas = atlasCounts[key];
+      const status = local === atlas ? '✅ OK' : '❌ DIFF';
+      console.log(`│ ${key.padEnd(15)} │ ${local.toString().padEnd(7)} │ ${atlas.toString().padEnd(7)} │ ${status.padEnd(8)} │`);
+    });
+    
+    console.log('└─────────────────┴─────────┴─────────┴──────────┘');
+    
+    // Verificar advertisements activos
+    const activeAds = await AtlasAdvertisement.find({ isActive: true });
+    console.log(`\n📢 Advertisements activos en Atlas: ${activeAds.length}`);
+    activeAds.forEach(ad => {
+      console.log(`   - ${ad.title} (${ad.type})`);
+    });
+    
+    // Verificar categorías activas
+    const activeCategories = await AtlasCategory.find({ isActive: true });
+    console.log(`\n📂 Categorías activas en Atlas: ${activeCategories.length}`);
+    activeCategories.forEach(cat => {
+      console.log(`   - ${cat.name} (${cat.slug})`);
+    });
     
     await localConn.close();
     await atlasConn.close();
     
+    console.log('\n✅ Verificación completada');
+    
   } catch (error) {
     console.error('❌ Error durante la verificación:', error);
-    if (error.message.includes('ECONNREFUSED')) {
-      console.log('💡 Asegúrate de que MongoDB local esté ejecutándose');
-    }
+    process.exit(1);
   }
 }
 
