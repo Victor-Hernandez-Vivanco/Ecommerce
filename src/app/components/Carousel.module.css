@@ -31,10 +31,43 @@
   align-items: center;
   justify-content: center;
   
-  /* ✅ IMPORTANTE: Propiedades de fondo */
+  /* ✅ CORREGIDO: Propiedades de fondo optimizadas para desktop */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+/* ✅ NUEVO: Ajustes específicos para desktop (pantallas grandes) */
+@media (min-width: 1024px) {
+  .slide {
+    background-size: cover; /* Asegura que cubra todo el contenedor */
+    background-attachment: scroll;
+  }
+  
+  /* Optimización para imágenes en desktop */
+  .slide[style*="background-image"] {
+    background-size: cover !important;
+    filter: contrast(1.05) saturate(1.1) brightness(0.95);
+  }
+  
+  /* Asegurar que el contenedor tenga la altura correcta */
+  .carousel {
+    height: 500px;
+    min-height: 500px;
+  }
+}
+
+/* ✅ MEJORADO: Ajustes para pantallas muy grandes */
+@media (min-width: 1440px) {
+  .carousel {
+    height: 600px;
+    min-height: 600px;
+  }
+  
+  .slide {
+    background-size: cover;
+    background-position: center center;
+  }
 }
 
 .slide.active {
@@ -109,8 +142,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Botones de navegación */
@@ -181,36 +218,36 @@
     height: 400px;
     margin-top: 60px;
   }
-  
+
   .slideContent {
     padding: 1.5rem;
     max-width: 90%;
   }
-  
+
   .slideTitle {
     font-size: 2.2rem;
   }
-  
+
   .slideDescription {
     font-size: 1.1rem;
     margin-bottom: 1.5rem;
   }
-  
+
   .slideButton {
     padding: 12px 24px;
     font-size: 1rem;
   }
-  
+
   .navButton {
     width: 50px;
     height: 50px;
     font-size: 1.5rem;
   }
-  
+
   .prevButton {
     left: 1rem;
   }
-  
+
   .nextButton {
     right: 1rem;
   }
@@ -220,11 +257,11 @@
   .carousel {
     height: 350px;
   }
-  
+
   .slideTitle {
     font-size: 1.8rem;
   }
-  
+
   .slideDescription {
     font-size: 1rem;
   }
@@ -244,4 +281,7 @@
 /* Optimización para imágenes */
 .slide[style*="background-image"] {
   filter: contrast(1.05) saturate(1.1) brightness(0.95);
+  /* ✅ AGREGADO: Asegurar cobertura completa */
+  background-size: cover;
+  background-position: center;
 }

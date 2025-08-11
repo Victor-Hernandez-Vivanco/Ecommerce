@@ -1,3 +1,5 @@
+// Modelo para anuncios
+
 import mongoose from "mongoose";
 
 // Interfaz para imágenes del advertisement
@@ -63,34 +65,39 @@ const AdvertisementSchema = new mongoose.Schema({
     type: String,
     required: false,
     validate: {
-      validator: function(url: string) {
+      validator: function (url: string) {
         if (!url) return true; // Opcional
-        
+
         // ✅ REGEX CORREGIDA: Acepta URLs externas Y rutas locales
-        const externalUrlRegex = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
-        const localPathRegex = /^\/[a-zA-Z0-9\/_\-\.]+\.(jpg|jpeg|png|webp|gif)$/i;
-        
+        const externalUrlRegex =
+          /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+        const localPathRegex =
+          /^\/[a-zA-Z0-9\/_\-\.]+\.(jpg|jpeg|png|webp|gif)$/i;
+
         return externalUrlRegex.test(url) || localPathRegex.test(url);
       },
-      message: "URL de imagen no válida. Use una URL completa (https://...) o una ruta local (/uploads/...)"
-    }
+      message:
+        "URL de imagen no válida. Use una URL completa (https://...) o una ruta local (/uploads/...)",
+    },
   },
   // URL de destino al hacer clic
   linkUrl: {
     type: String,
     required: false,
     validate: {
-      validator: function(url: string) {
+      validator: function (url: string) {
         if (!url) return true; // Opcional
-        
+
         // ✅ REGEX CORREGIDA: Acepta URLs externas Y rutas locales
-        const externalUrlRegex = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+        const externalUrlRegex =
+          /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
         const localPathRegex = /^\/[a-zA-Z0-9\/_\-\.]*$/;
-        
+
         return externalUrlRegex.test(url) || localPathRegex.test(url);
       },
-      message: "URL de destino no válida. Use una URL completa (https://...) o una ruta local (/productos/...)"
-    }
+      message:
+        "URL de destino no válida. Use una URL completa (https://...) o una ruta local (/productos/...)",
+    },
   },
   // Orden de aparición en el carrusel
   order: {
@@ -106,8 +113,8 @@ const AdvertisementSchema = new mongoose.Schema({
   // Tipo de advertisement
   type: {
     type: String,
-    enum: ['product', 'promotion', 'external', 'announcement'],
-    default: 'promotion',
+    enum: ["product", "promotion", "external", "announcement"],
+    default: "promotion",
   },
   // Fechas de vigencia
   startDate: {
@@ -140,16 +147,19 @@ const AdvertisementSchema = new mongoose.Schema({
 });
 
 // ✅ VALIDACIÓN CORREGIDA: Más flexible
-AdvertisementSchema.pre('validate', function(next) {
+AdvertisementSchema.pre("validate", function (next) {
   // Solo requerir imagen si no hay imageUrl Y no hay image
   if (!this.image && !this.imageUrl) {
-    this.invalidate('imageUrl', 'Debe proporcionar una imagen subida o una URL de imagen');
+    this.invalidate(
+      "imageUrl",
+      "Debe proporcionar una imagen subida o una URL de imagen"
+    );
   }
   next();
 });
 
 // Actualizar updatedAt antes de guardar
-AdvertisementSchema.pre('save', function(next) {
+AdvertisementSchema.pre("save", function (next) {
   this.updatedAt = new Date();
   next();
 });
@@ -166,7 +176,7 @@ export interface IAdvertisement extends mongoose.Document {
   linkUrl?: string;
   order: number;
   isActive: boolean;
-  type: 'product' | 'promotion' | 'external' | 'announcement';
+  type: "product" | "promotion" | "external" | "announcement";
   startDate?: Date;
   endDate?: Date;
   views: number;
@@ -175,4 +185,7 @@ export interface IAdvertisement extends mongoose.Document {
   updatedAt: Date;
 }
 
-export default mongoose.model<IAdvertisement>("Advertisement", AdvertisementSchema);
+export default mongoose.model<IAdvertisement>(
+  "Advertisement",
+  AdvertisementSchema
+);

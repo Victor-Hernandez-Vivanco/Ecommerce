@@ -350,10 +350,10 @@ export default function CarruselAdmin() {
                   
                   <div className={styles.listCell}>
                     <span className={`${styles.typeTag} ${styles[ad.type]}`}>
-                      {ad.type === 'product' && '🛍️ Producto'}
-                      {ad.type === 'promotion' && '🎯 Promoción'}
-                      {ad.type === 'external' && '🌐 Externo'}
-                      {ad.type === 'announcement' && '📢 Anuncio'}
+                      {ad.type === 'product' && ' Producto'}
+                      {ad.type === 'promotion' && ' Promoción'}
+                      {ad.type === 'external' && ' Externo'}
+                      {ad.type === 'announcement' && ' Anuncio'}
                     </span>
                   </div>
                   

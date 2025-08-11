@@ -117,7 +117,10 @@ export default function Carousel() {
   const getSlideStyle = (advertisement: Advertisement, index: number) => {
     if (advertisement.imageUrl) {
       return {
-        backgroundImage: `url(${advertisement.imageUrl})`
+        backgroundImage: `url(${advertisement.imageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
       };
     }
     
