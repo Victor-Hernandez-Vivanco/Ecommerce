@@ -10,7 +10,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .headerContent {
@@ -66,17 +66,17 @@
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .adminInfo {
     flex-direction: column;
     gap: 1rem;
     width: 100%;
   }
-  
+
   .adminProfile {
     justify-content: center;
   }
-  
+
   .logoutBtn {
     width: 100%;
     justify-content: center;
@@ -186,8 +186,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Sección de Bienvenida */
@@ -454,23 +458,23 @@
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .main {
     padding: 1rem;
   }
-  
+
   .statsGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .actionsGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .quickActionsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .quickStats {
     flex-direction: column;
     gap: 0.5rem;

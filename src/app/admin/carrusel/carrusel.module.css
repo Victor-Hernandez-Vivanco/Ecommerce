@@ -12,16 +12,17 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .headerContent {
-  max-width: 1400px;
+  max-width: 2000px;
   margin: 0 auto;
   padding: 0 2rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: center; /* Centra el contenido horizontalmente */
+  align-items: center; /* Centra verticalmente el botón y el título */
+  position: relative;
 }
 
 .headerLeft h1 {
@@ -37,32 +38,51 @@
   margin: 0;
 }
 
-.backButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #4299e1;
+.createButton1 {
+  /* display: inline-flex;
+  align-items: right;
+  justify-content: right; */
+  /* gap: 1rem; */
+  background: blue;
+  color: white;
   text-decoration: none;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
+  padding: 0.75rem 5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
   transition: all 0.2s;
-  margin-bottom: 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+
+.createButton1:hover {
+  background: #38a169;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.backButton {
+  color: blue;
+  position: absolute;
+  left: 2rem; /* Fija el botón al lado izquierdo */
+  top: 50%;
+  transform: translateY(-50%); /* Centrado vertical con respecto al header */
+  margin-bottom: 0; /* Quita espacio innecesario */
 }
 
 .backButton:hover {
-  background: #ebf8ff;
-  color: #2b6cb0;
+  background: white;
+  color: blue;
 }
 
 .createButton {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background: #48bb78;
+  gap: 1rem;
+  background: blue;
   color: white;
   text-decoration: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 5rem;
   border-radius: 0.5rem;
   font-weight: 600;
   transition: all 0.2s;
@@ -72,13 +92,14 @@
 
 .createButton:hover {
   background: #38a169;
+  color: white;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
 }
 
 /* ===== MAIN CONTENT ===== */
 .main {
-  max-width: 1400px;
+  max-width: 1500px;
   margin: 0 auto;
   padding: 2rem;
 }
@@ -89,7 +110,7 @@
   border-radius: 0.75rem;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .searchContainer {
@@ -108,7 +129,7 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: #4299e1;
+  border-color: blue;
   box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
 }
 
@@ -137,7 +158,7 @@
 .filterButton.active {
   background: #4299e1;
   color: white;
-  border-color: #4299e1;
+  border-color: blue;
 }
 
 /* ===== SECCIÓN DE PUBLICIDADES ===== */
@@ -145,7 +166,7 @@
   background: white;
   border-radius: 0.75rem;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* ===== ESTADO VACÍO ===== */
@@ -155,10 +176,10 @@
   color: #718096;
 }
 
-.emptyIcon {
+/* .emptyIcon {
   font-size: 4rem;
   margin-bottom: 1rem;
-}
+} */
 
 .emptyState h3 {
   color: #2d3748;
@@ -240,7 +261,7 @@
 }
 
 .advertisementLink {
-  color: #4299e1;
+  color: blue;
   text-decoration: none;
   font-size: 0.75rem;
   font-weight: 500;
@@ -314,7 +335,7 @@
 
 .statusButton:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* ===== ESTADÍSTICAS ===== */
@@ -387,8 +408,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== RESPONSIVE ===== */
@@ -406,22 +431,22 @@
     gap: 1rem;
     align-items: flex-start;
   }
-  
+
   .main {
     padding: 1rem;
   }
-  
+
   .listHeader,
   .listRow {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-  
+
   .listCell {
     padding: 0.5rem 0;
     border-bottom: 1px solid #f1f5f9;
   }
-  
+
   .filterButtons {
     justify-content: center;
   }
@@ -431,7 +456,7 @@
   .headerContent {
     padding: 0 1rem;
   }
-  
+
   .filtersSection,
   .advertisementsSection {
     margin: 0 -1rem;

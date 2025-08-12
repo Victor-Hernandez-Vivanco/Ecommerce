@@ -12,13 +12,17 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .headerContent {
-  max-width: 1000px;
+  max-width: 2000px;
   margin: 0 auto;
   padding: 0 2rem;
+  display: flex;
+  justify-content: center; /* Centra el contenido horizontalmente */
+  align-items: center; /* Centra verticalmente el botón y el título */
+  position: relative;
 }
 
 .headerLeft h1 {
@@ -35,26 +39,22 @@
 }
 
 .backButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #4299e1;
-  text-decoration: none;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
-  margin-bottom: 0.5rem;
+  color: blue;
+  position: absolute;
+  left: 2rem; /* Fija el botón al lado izquierdo */
+  top: 50%;
+  transform: translateY(-50%); /* Centrado vertical con respecto al header */
+  margin-bottom: 0; /* Quita espacio innecesario */
 }
 
 .backButton:hover {
-  background: #ebf8ff;
-  color: #2b6cb0;
+  background: white;
+  color: blue;
 }
 
 /* ===== MAIN CONTENT ===== */
 .main {
-  max-width: 1000px;
+  max-width: 1500px;
   margin: 0 auto;
   padding: 2rem;
 }
@@ -70,7 +70,7 @@
   background: white;
   border-radius: 0.75rem;
   padding: 2rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .sectionTitle {
@@ -126,7 +126,7 @@
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: #4299e1;
+  border-color: blue;
   box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
 }
 
@@ -178,7 +178,7 @@
 }
 
 .toggle::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 20px;
   height: 20px;
@@ -187,7 +187,7 @@
   top: 2px;
   left: 2px;
   transition: transform 0.2s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .toggle:checked::before {
@@ -240,7 +240,7 @@
 .optionButton.active {
   background: #4299e1;
   color: white;
-  border-color: #4299e1;
+  border-color: blue;
 }
 
 /* ===== DROP ZONE ===== */
@@ -256,12 +256,12 @@
 }
 
 .dropZone:hover {
-  border-color: #4299e1;
+  border-color: blue;
   background: #f7fafc;
 }
 
 .dropZone.dragActive {
-  border-color: #4299e1;
+  border-color: blue;
   background: #ebf8ff;
   transform: scale(1.02);
 }
@@ -357,7 +357,7 @@
   padding: 2rem;
   background: white;
   border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .cancelButton {
@@ -418,8 +418,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== RESPONSIVE ===== */
@@ -427,29 +431,29 @@
   .main {
     padding: 1rem;
   }
-  
+
   .section {
     padding: 1.5rem;
   }
-  
+
   .formRow {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .formActions {
     flex-direction: column;
   }
-  
+
   .cancelButton,
   .submitButton {
     width: 100%;
   }
-  
+
   .imageOptions {
     flex-direction: column;
   }
-  
+
   .optionButton {
     justify-content: center;
   }
@@ -459,12 +463,12 @@
   .headerContent {
     padding: 0 1rem;
   }
-  
+
   .section {
     margin: 0 -1rem;
     border-radius: 0;
   }
-  
+
   .dropZone {
     padding: 2rem 1rem;
   }

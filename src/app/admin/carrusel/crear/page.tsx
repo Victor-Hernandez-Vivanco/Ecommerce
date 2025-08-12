@@ -342,10 +342,10 @@ export default function CrearPublicidad() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
+        <div className={styles.headerContent}>
         <Link href="/admin/carrusel" className={styles.backButton}>
           ← Volver a Carrusel
         </Link>
-        <div className={styles.headerContent}>
           <div className={styles.headerLeft}>
             <h1>Crear Nueva Publicidad</h1>
             <p>Agrega una nueva publicidad al carrusel principal</p>
@@ -466,7 +466,7 @@ export default function CrearPublicidad() {
                   className={styles.toggle}
                 />
                 <label htmlFor="isActive" className={styles.toggleLabel}>
-                  {formData.isActive ? "✅ Activa" : "❌ Inactiva"}
+                  {formData.isActive ? "Activa" : "Pausada"}
                 </label>
               </div>
             </div>
