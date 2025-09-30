@@ -84,18 +84,10 @@ export default function ProductoPage() {
 
   // ✅ FUNCIÓN PARA OBTENER IMAGEN CORRECTA
   const getCorrectImagePath = useCallback((product: Product) => {
-    console.log("🔍 Debugging product images:", {
-      productName: product.name,
-      images: product.images,
-      image: product.image,
-    });
-
     // Sistema nuevo: campo 'images' (array)
     if (product.images && product.images.length > 0) {
       const primaryImage = product.images.find((img) => img.isPrimary);
       const imageUrl = primaryImage ? primaryImage.url : product.images[0].url;
-
-      console.log("📸 Image URL from array:", imageUrl);
 
       // Si ya es una URL completa (http o /uploads/), devolverla tal como está
       if (
@@ -108,15 +100,12 @@ export default function ProductoPage() {
       // Si es solo el nombre del archivo, agregar la ruta completa
       if (imageUrl) {
         const fullPath = `/uploads/products/${imageUrl}`;
-        console.log("🔗 Generated full path:", fullPath);
         return fullPath;
       }
     }
 
     // Sistema antiguo: campo 'image' (string)
     if (product.image) {
-      console.log("📸 Image URL from string:", product.image);
-
       // Si es una URL externa (Unsplash), devolverla tal como está
       if (product.image.startsWith("http")) {
         return product.image;
@@ -129,12 +118,10 @@ export default function ProductoPage() {
 
       // Si es solo el nombre del archivo, agregar la ruta completa
       const fullPath = `/uploads/products/${product.image}`;
-      console.log("🔗 Generated full path for string:", fullPath);
       return fullPath;
     }
 
     // Fallback
-    console.log("⚠️ Using fallback image");
     return "/placeholder-product.jpg";
   }, []);
 
@@ -202,7 +189,6 @@ export default function ProductoPage() {
 
   // ✅ FUNCIÓN HELPER MEJORADA PARA OBTENER OPCIONES DE PESO - FILTRADA POR STOCK
   const getWeightOptions = (product: Product): WeightOption[] => {
-    console.log("Product pricesByWeight:", product.pricesByWeight); // Debug
     if (product.pricesByWeight && product.pricesByWeight.length > 0) {
       return product.pricesByWeight
         .filter((option) => option.stock > 0) // ✅ FILTRAR SOLO OPCIONES CON STOCK
@@ -229,10 +215,8 @@ export default function ProductoPage() {
       const response = await fetch(`/api/products/main-carousel`);
       if (response.ok) {
         const data = await response.json();
-        console.log("📦 Productos recibidos de main-carousel:", data);
         // ✅ CORREGIDO: No filtrar el producto actual, mostrar todos los del carrusel
         setRecommendedProducts(data.slice(0, 10));
-        console.log("✅ Productos para carrusel:", data);
       }
     } catch (error) {
       console.error(
@@ -251,16 +235,13 @@ export default function ProductoPage() {
       const response = await fetch(`/api/products/${params.id}`);
       if (response.ok) {
         const data = await response.json();
-        console.log("Producto cargado:", data); // Debug
         setProduct(data);
 
         // ✅ CONFIGURAR PESO POR DEFECTO MEJORADO - SOLO CON STOCK
         const weightOptions = getWeightOptions(data);
-        console.log("Weight options with stock:", weightOptions); // Debug
         if (weightOptions.length > 0) {
           // Seleccionar la primera opción disponible con stock
           setSelectedWeight(weightOptions[0]);
-          console.log("Selected weight with stock:", weightOptions[0]); // Debug
         } else {
           console.warn(
             "No weight options with stock available for product:",
@@ -619,7 +600,6 @@ export default function ProductoPage() {
                             }`}
                             onClick={() => {
                               setSelectedWeight(option);
-                              console.log("Weight selected:", option); // Debug
                             }}
                           >
                             {option.label}
@@ -668,10 +648,6 @@ export default function ProductoPage() {
                     <div className={styles.purchaseActions}>
                       <button
                         onClick={() => {
-                          console.log(
-                            "Button clicked, selectedWeight:",
-                            selectedWeight
-                          ); // Debug
                           addToCart();
                         }}
                         className={styles.addToCartBtn}

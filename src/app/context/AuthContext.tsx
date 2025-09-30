@@ -107,8 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.removeItem('token')
             dispatch({ type: 'LOGOUT' })
           }
-        } catch (error) {
-          console.error('Error verificando token:', error)
+        } catch {
           localStorage.removeItem('token')
           dispatch({ type: 'LOGOUT' })
         }
@@ -122,8 +121,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       dispatch({ type: 'LOGIN_START' })
       
-      console.log('🔄 Intentando login:', { email })
-      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -132,21 +129,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ email, password })
       })
 
-      console.log('📡 Respuesta del login:', response.status)
-
       if (!response.ok) {
         const errorData = await response.json()
-        console.error('❌ Error en login:', errorData)
         throw new Error(errorData.message || 'Error en el login')
       }
 
       const data = await response.json()
-      console.log('✅ Login exitoso:', data.user)
       
       localStorage.setItem('token', data.token)
       dispatch({ type: 'LOGIN_SUCCESS', payload: data.user })
     } catch (error) {
-      console.error('❌ Error en login:', error)
       dispatch({ type: 'LOGIN_FAILURE' })
       throw error
     }
@@ -155,12 +147,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: RegisterData) => {
     try {
       dispatch({ type: 'LOGIN_START' })
-      
-      console.log('🔄 Enviando datos de registro:', {
-        name: userData.name,
-        email: userData.email,
-        password: '***'
-      })
       
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -173,22 +159,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           password: userData.password
         })
       })
-
-      console.log('📡 Respuesta del servidor:', response.status)
       
       if (!response.ok) {
         const errorData = await response.json()
-        console.error('❌ Error del servidor:', errorData)
         throw new Error(errorData.message || 'Error en el registro')
       }
 
       const data = await response.json()
-      console.log('✅ Registro exitoso:', data.user)
       
       localStorage.setItem('token', data.token)
       dispatch({ type: 'LOGIN_SUCCESS', payload: data.user })
     } catch (error) {
-      console.error('❌ Error en registro:', error)
       dispatch({ type: 'LOGIN_FAILURE' })
       throw error
     }

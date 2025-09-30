@@ -124,15 +124,15 @@ const ProductSchema = new mongoose.Schema({
     type: String,
     required: true,
     enum: [
-      "Frutos Secos", 
-      "Frutas Deshidratadas", 
-      "Despensa", 
-      "Semillas", 
-      "Mix", 
-      "Cereales", 
-      "Snack", 
-      "Full", 
-      "Box"
+      "Frutos Secos",
+      "Frutas Deshidratadas",
+      "Despensa",
+      "Semillas",
+      "Mix",
+      "Cereales",
+      "Snack",
+      "Full",
+      "Box",
     ],
   },
   // ✅ NUEVO CAMPO PARA MÚLTIPLES CATEGORÍAS
@@ -140,22 +140,22 @@ const ProductSchema = new mongoose.Schema({
     type: [String],
     required: false,
     validate: {
-      validator: function(categories: string[]) {
+      validator: function (categories: string[]) {
         const validCategories = [
-          "Frutos Secos", 
-          "Frutas Deshidratadas", 
-          "Despensa", 
-          "Semillas", 
-          "Mix", 
-          "Cereales", 
-          "Snack", 
-          "Full", 
-          "Box"
+          "Frutos Secos",
+          "Frutas Deshidratadas",
+          "Despensa",
+          "Semillas",
+          "Mix",
+          "Cereales",
+          "Snack",
+          "Full",
+          "Box",
         ];
-        return categories.every(cat => validCategories.includes(cat));
+        return categories.every((cat) => validCategories.includes(cat));
       },
-      message: "Una o más categorías no son válidas"
-    }
+      message: "Una o más categorías no son válidas",
+    },
   },
   totalStock: {
     type: Number,
@@ -199,12 +199,9 @@ const ProductSchema = new mongoose.Schema({
 
 // ✅ MIDDLEWARE PRE-VALIDATE: Calcular campos antes de validación
 ProductSchema.pre("validate", function (next) {
-  console.log("🔄 Pre-validate ejecutándose...");
-
   // Calcular precio base por 100g
   if (this.pricePerKilo) {
     this.basePricePer100g = Math.round((this.pricePerKilo * 100) / 1000);
-    console.log("✅ basePricePer100g calculado:", this.basePricePer100g);
   }
 
   // Establecer imagen principal
@@ -213,7 +210,6 @@ ProductSchema.pre("validate", function (next) {
       (img: IProductImage) => img.isPrimary
     );
     this.image = primaryImage ? primaryImage.url : this.images[0].url;
-    console.log("✅ Imagen principal establecida:", this.image);
   }
 
   next();
@@ -221,8 +217,6 @@ ProductSchema.pre("validate", function (next) {
 
 // ✅ MIDDLEWARE PRE-SAVE: Calcular precios y stock
 ProductSchema.pre("save", function (next) {
-  console.log("🔄 Pre-save ejecutándose...");
-
   // Calcular precios automáticamente
   if (this.pricePerKilo && this.pricesByWeight) {
     this.pricesByWeight.forEach((item) => {
@@ -234,8 +228,6 @@ ProductSchema.pre("save", function (next) {
       (total: number, item) => total + item.stock,
       0
     );
-
-    console.log("✅ Precios y stock calculados");
   }
 
   this.updatedAt = new Date();

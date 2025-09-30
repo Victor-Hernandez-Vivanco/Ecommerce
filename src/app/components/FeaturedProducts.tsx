@@ -236,10 +236,8 @@ export default function FeaturedProducts() {
         }
         
         const data = await response.json()
-        console.log('✅ Productos destacados cargados:', data.length)
         
         if (data.length === 0) {
-          console.log('⚠️ No hay productos destacados, cargando productos generales...')
           const allProductsResponse = await fetch('/api/products')
           
           if (allProductsResponse.ok) {

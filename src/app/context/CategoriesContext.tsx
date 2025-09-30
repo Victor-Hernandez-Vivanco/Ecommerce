@@ -22,27 +22,19 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
 
   const fetchCategories = async () => {
     try {
-      console.log('🔍 [CategoriesContext] Fetching categories...');
       setLoading(true);
       setError(null);
       
       const response = await fetch('/api/categories');
-      console.log('🔍 [CategoriesContext] Response status:', response.status);
-      console.log('🔍 [CategoriesContext] Response ok:', response.ok);
-      console.log('🔍 [CategoriesContext] Response headers:', Object.fromEntries(response.headers.entries()));
       
       const data = await response.json();
-      console.log('🔍 [CategoriesContext] Response data:', data);
       
       if (data.success) {
-        console.log('🔍 [CategoriesContext] Setting categories:', data.categories.length);
         setCategories(data.categories);
       } else {
-        console.error('🔍 [CategoriesContext] API Error:', data.message);
         setError(data.message || 'Error al cargar categorías');
       }
     } catch (err) {
-      console.error('🔍 [CategoriesContext] Fetch Error:', err);
       setError(`Error de conexión: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);

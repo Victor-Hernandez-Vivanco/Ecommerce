@@ -27,8 +27,6 @@ export default function AdminLoginPage() {
     setError('');
 
     try {
-      console.log('🔐 Intentando login de admin...');
-      
       const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: {
@@ -42,16 +40,11 @@ export default function AdminLoginPage() {
       if (!response.ok) {
         throw new Error(data.message || 'Error en el login');
       }
-
-      console.log('✅ Login de admin exitoso');
       
-      // ✅ USAR localStorage:
       localStorage.setItem('admin-token', data.token);
       
-      // ✅ Redirigir al dashboard
       router.push('/admin/dashboard');
     } catch (error) {
-      console.error('❌ Error en login de admin:', error);
       setError(error instanceof Error ? error.message : 'Error en el login');
     } finally {
       setLoading(false);

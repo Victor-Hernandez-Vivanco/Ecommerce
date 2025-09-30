@@ -40,13 +40,7 @@ export default function AdminDashboard() {
       try {
         const adminToken = localStorage.getItem("admin-token");
 
-        console.log(
-          "🔍 Verificando token admin:",
-          adminToken ? "Existe" : "No existe"
-        );
-
         if (!adminToken) {
-          console.log("❌ No hay token admin, redirigiendo...");
           router.push("/admin/login");
           return;
         }
@@ -58,7 +52,6 @@ export default function AdminDashboard() {
         });
 
         if (!response.ok) {
-          console.log("❌ Token inválido, redirigiendo...");
           localStorage.removeItem("admin-token");
           router.push("/admin/login");
           return;

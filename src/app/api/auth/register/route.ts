@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import connectDB from '@/lib/mongodb';
-import User from '@/models/User';
+import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import connectDB from "@/lib/mongodb";
+import User from "@/models/User";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,14 +12,14 @@ export async function POST(request: NextRequest) {
     // Validaciones
     if (!name || !email || !password) {
       return NextResponse.json(
-        { message: 'Todos los campos son requeridos' },
+        { message: "Todos los campos son requeridos" },
         { status: 400 }
       );
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { message: 'La contraseña debe tener al menos 6 caracteres' },
+        { message: "La contraseña debe tener al menos 6 caracteres" },
         { status: 400 }
       );
     }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
-        { message: 'El usuario ya existe con este email' },
+        { message: "El usuario ya existe con este email" },
         { status: 400 }
       );
     }
@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
     });
 
     await newUser.save();
-    console.log('✅ Usuario creado exitosamente:', newUser._id);
 
     // Generar token JWT
     const token = jwt.sign(
@@ -53,13 +52,13 @@ export async function POST(request: NextRequest) {
         userId: newUser._id,
         email: newUser.email,
       },
-      process.env.JWT_SECRET || 'tu_jwt_secret',
-      { expiresIn: '24h' }
+      process.env.JWT_SECRET || "tu_jwt_secret",
+      { expiresIn: "24h" }
     );
 
     return NextResponse.json(
       {
-        message: 'Usuario registrado exitosamente',
+        message: "Usuario registrado exitosamente",
         token,
         user: {
           id: newUser._id,
@@ -69,10 +68,9 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('❌ Error en registro:', error);
+  } catch {
     return NextResponse.json(
-      { message: 'Error interno del servidor' },
+      { message: "Error interno del servidor" },
       { status: 500 }
     );
   }

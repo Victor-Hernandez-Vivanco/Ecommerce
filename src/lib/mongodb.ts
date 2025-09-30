@@ -92,7 +92,6 @@ async function connectDB(): Promise<Mongoose> {
     cached.promise = mongoose
       .connect(MONGODB_URI, opts)
       .then((mongooseInstance) => {
-        console.log("✅ Conectado a MongoDB");
         return mongooseInstance;
       });
   }
@@ -103,7 +102,6 @@ async function connectDB(): Promise<Mongoose> {
   } catch (error) {
     // Si algo falla, limpiamos la promesa para poder reintentar
     cached.promise = null;
-    console.error("❌ Error conectando a MongoDB:", error);
     throw error;
   }
 

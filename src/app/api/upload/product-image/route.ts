@@ -100,8 +100,6 @@ export async function POST(request: NextRequest) {
     // Retornar URL del archivo
     const imageUrl = `/uploads/products/${fileName}`;
 
-    console.log(`✅ Imagen subida: ${fileName}`);
-
     return NextResponse.json({
       message: "Imagen subida exitosamente",
       imageUrl,
@@ -110,8 +108,7 @@ export async function POST(request: NextRequest) {
       size: file.size,
       mimeType: file.type,
     });
-  } catch (error) {
-    console.error("Error subiendo imagen:", error);
+  } catch {
     return NextResponse.json(
       { message: "Error del servidor al subir imagen" },
       { status: 500 }

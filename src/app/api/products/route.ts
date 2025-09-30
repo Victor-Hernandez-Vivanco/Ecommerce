@@ -36,8 +36,7 @@ export async function GET() {
     await connectDB();
     const products = await Product.find().sort({ createdAt: -1 });
     return NextResponse.json(products);
-  } catch (error) {
-    console.error("Error al obtener productos:", error);
+  } catch {
     return NextResponse.json(
       { message: "Error del servidor" },
       { status: 500 }
@@ -67,10 +66,10 @@ export async function POST(request: NextRequest) {
       pricesByWeight,
       images,
       category,
-      categories,        // ✅ AGREGAR CAMPO FALTANTE
+      categories, // ✅ AGREGAR CAMPO FALTANTE
       featured,
-      isAdvertisement,   // ✅ AGREGAR CAMPO FALTANTE
-      isMainCarousel,    // ✅ AGREGAR CAMPO FALTANTE
+      isAdvertisement, // ✅ AGREGAR CAMPO FALTANTE
+      isMainCarousel, // ✅ AGREGAR CAMPO FALTANTE
       discount,
     } = body;
 
@@ -121,20 +120,17 @@ export async function POST(request: NextRequest) {
       pricesByWeight,
       images,
       category,
-      categories: categories || [category],      // ✅ USAR categories O FALLBACK
+      categories: categories || [category], // ✅ USAR categories O FALLBACK
       featured: featured || false,
       isAdvertisement: isAdvertisement || false, // ✅ NUEVO CAMPO
-      isMainCarousel: isMainCarousel || false,   // ✅ NUEVO CAMPO
+      isMainCarousel: isMainCarousel || false, // ✅ NUEVO CAMPO
       discount: discount || 0,
     });
 
     const product = await newProduct.save();
-    console.log("✅ Producto creado:", product.name);
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
-    console.error("Error al crear producto:", error);
-
     // ✅ MEJOR MANEJO DE ERRORES DE VALIDACIÓN
     if (error instanceof Error) {
       if (error.message.includes("validation failed")) {

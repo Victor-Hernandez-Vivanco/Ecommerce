@@ -5,31 +5,15 @@ import Category from "@/models/Category";
 // GET - Obtener todas las categorías
 export async function GET() {
   try {
-    console.log("🔍 API Categories - Iniciando...");
-    console.log("🔍 MONGODB_URI exists:", !!process.env.MONGODB_URI);
-    console.log("🔍 Environment:", process.env.NODE_ENV);
-
     await connectDB();
-    console.log("🔍 Conectado a MongoDB");
 
     // Buscar TODAS las categorías primero
     const allCategories = await Category.find({}).lean();
-    console.log("🔍 Total categorías en DB:", allCategories.length);
 
     // Buscar solo las activas
     const categories = await Category.find({ isActive: true })
       .sort({ order: 1, name: 1 })
       .lean();
-
-    console.log("🔍 Categorías activas:", categories.length);
-    console.log(
-      "🔍 Categorías encontradas:",
-      categories.map((c) => ({
-        name: c.name,
-        isActive: c.isActive,
-        slug: c.slug,
-      }))
-    );
 
     return NextResponse.json({
       success: true,
@@ -42,7 +26,6 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("❌ Error fetching categories:", error);
     return NextResponse.json(
       {
         success: false,
@@ -86,8 +69,7 @@ export async function POST(request: NextRequest) {
       success: true,
       category,
     });
-  } catch (error) {
-    console.error("Error creating category:", error);
+  } catch {
     return NextResponse.json(
       { success: false, message: "Error al crear categoría" },
       { status: 500 }

@@ -116,7 +116,6 @@ export default function ProductosPage() {
       
       if (response.ok) {
         const data = await response.json()
-        console.log('✅ Productos cargados:', data.length)
         setProducts(data || [])
       } else {
         throw new Error('Error al cargar productos')
@@ -143,17 +142,6 @@ export default function ProductosPage() {
     
     // ✅ FILTRO DE PRECIO MÁS FLEXIBLE
     const matchesPrice = productPrice === 0 || (productPrice >= minPrice && productPrice <= maxPrice)
-    
-    console.log('Filtro producto:', {
-      name: product.name,
-      category: product.category,
-      categories: product.categories,
-      price: productPrice,
-      matchesCategory,
-      matchesSearch,
-      matchesPrice,
-      selectedCategory
-    })
     
     return matchesCategory && matchesSearch && matchesPrice
   })
@@ -188,7 +176,6 @@ export default function ProductosPage() {
   // ✅ FUNCIÓN addToCart MEJORADA CON VALIDACIÓN DE STOCK
   const addToCart = (product: Product, weight?: WeightOption | undefined, qty: number = 1) => {
     if (!weight) {
-      console.warn('Cannot add to cart: no weight selected')
       return
     }
     
