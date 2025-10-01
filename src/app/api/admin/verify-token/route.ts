@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { env } from "@/config/env";
 
 interface DecodedToken {
   userId: string;
@@ -20,10 +21,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "tu_jwt_secret"
-    ) as DecodedToken;
+    const decoded = jwt.verify(token, env.JWT_SECRET) as DecodedToken;
 
     if (!decoded.isAdmin) {
       return NextResponse.json(

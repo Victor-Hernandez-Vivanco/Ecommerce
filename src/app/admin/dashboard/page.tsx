@@ -12,27 +12,9 @@ interface AdminData {
   role: string;
 }
 
-// Interfaz para estadísticas
-interface StatsData {
-  totalProducts: number;
-  featuredProducts: number;
-  totalUsers: number;
-  lowStockProducts: number;
-  totalAdvertisements: number;
-  activeAdvertisements: number;
-}
-
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [adminData, setAdminData] = useState<AdminData | null>(null);
-  const [stats, setStats] = useState<StatsData>({
-    totalProducts: 0,
-    featuredProducts: 0,
-    totalUsers: 0,
-    lowStockProducts: 0,
-    totalAdvertisements: 0,
-    activeAdvertisements: 0,
-  });
   const router = useRouter();
 
   useEffect(() => {
@@ -59,9 +41,6 @@ export default function AdminDashboard() {
 
         const data = await response.json();
         setAdminData(data.admin);
-
-        // Cargar estadísticas
-        await loadStats();
       } catch (error) {
         console.error("Error verificando autenticación:", error);
         router.push("/admin/login");
@@ -72,18 +51,6 @@ export default function AdminDashboard() {
 
     checkAdminAuth();
   }, [router]);
-
-  const loadStats = async () => {
-    try {
-      const response = await fetch("/api/admin/stats");
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data.stats);
-      }
-    } catch (error) {
-      console.error("Error cargando estadísticas:", error);
-    }
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("admin-token");
@@ -134,44 +101,6 @@ export default function AdminDashboard() {
       </header>
 
       <main className={styles.main}>
-        {/* Estadísticas */}
-        {/* <section className={styles.statsSection}>
-          <h2>Estadísticas</h2>
-          <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <div className={styles.statIcon}>📦</div>
-              <div className={styles.statInfo}>
-                <h3>{stats.totalProducts}</h3>
-                <p>Total Productos</p>
-              </div>
-            </div>
-            
-            <div className={styles.statCard}>
-              <div className={styles.statIcon}>⭐</div>
-              <div className={styles.statInfo}>
-                <h3>{stats.featuredProducts}</h3>
-                <p>Productos Destacados</p>
-              </div>
-            </div>
-            
-            <div className={styles.statCard}>
-              <div className={styles.statIcon}>🎨</div>
-              <div className={styles.statInfo}>
-                <h3>{stats.activeAdvertisements}</h3>
-                <p>Publicidades Activas</p>
-              </div>
-            </div>
-            
-            <div className={styles.statCard}>
-              <div className={styles.statIcon}>⚠️</div>
-              <div className={styles.statInfo}>
-                <h3>{stats.lowStockProducts}</h3>
-                <p>Stock Bajo</p>
-              </div>
-            </div>
-          </div>
-        </section> */}
-
         {/* Acciones Principales */}
         <section className={styles.actionsSection}>
           <h2>Gestión Principal</h2>
@@ -251,37 +180,6 @@ export default function AdminDashboard() {
             </Link>
           </div>
         </section>
-
-        {/* Acciones Rápidas */}
-        {/* <section className={styles.quickActionsSection}>
-          <h2>Acciones Rápidas</h2>
-          <div className={styles.quickActionsGrid}>
-            <Link href="/admin/productos/crear" className={styles.quickAction}>
-              <div className={styles.quickActionIcon}>➕</div>
-              <span>Crear Producto</span>
-            </Link>
-            
-            <Link href="/admin/carrusel/crear" className={styles.quickAction}>
-              <div className={styles.quickActionIcon}>🎨</div>
-              <span>Crear Publicidad</span>
-            </Link>
-            
-            <Link href="/admin/productos" className={styles.quickAction}>
-              <div className={styles.quickActionIcon}>📋</div>
-              <span>Ver Inventario</span>
-            </Link>
-            
-            <Link href="/admin/carrusel" className={styles.quickAction}>
-              <div className={styles.quickActionIcon}>🖼️</div>
-              <span>Ver Carrusel</span>
-            </Link>
-            
-            <Link href="/admin/categorias" className={styles.quickAction}>
-              <div className={styles.quickActionIcon}>🏷️</div>
-              <span>Gestionar Categorías</span>
-            </Link>
-          </div>
-        </section> */}
       </main>
     </div>
   );

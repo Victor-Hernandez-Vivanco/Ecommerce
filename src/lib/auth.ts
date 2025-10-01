@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
+import { env } from "@/config/env";
 
 // Interfaz para el token decodificado
 interface DecodedToken {
@@ -21,13 +22,10 @@ export const verifyAdminToken = (request: NextRequest): DecodedToken | null => {
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "tu_jwt_secret"
-    ) as DecodedToken;
-    
+    const decoded = jwt.verify(token, env.JWT_SECRET) as DecodedToken;
+
     // Verificar que sea admin
-    return decoded.isAdmin && decoded.role === 'admin' ? decoded : null;
+    return decoded.isAdmin && decoded.role === "admin" ? decoded : null;
   } catch {
     return null;
   }
@@ -43,11 +41,8 @@ export const verifyUserToken = (request: NextRequest): DecodedToken | null => {
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "tu_jwt_secret"
-    ) as DecodedToken;
-    
+    const decoded = jwt.verify(token, env.JWT_SECRET) as DecodedToken;
+
     return decoded;
   } catch {
     return null;

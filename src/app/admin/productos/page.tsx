@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from './productos.module.css';
+import { getProductStock } from '@/utils/product';
 
 interface Product {
   _id: string;
@@ -64,7 +65,7 @@ export default function ProductosAdmin() {
     return product.image || '';
   };
 
-  // ✅ FUNCIÓN HELPER PARA OBTENER PRECIO
+  // ✅ FUNCIÓN HELPER PARA OBTENER PRECIO (versión admin con formato especial)
   const getProductPrice = (product: Product) => {
     if (product.pricePerKilo) {
       return `$${product.pricePerKilo.toLocaleString()}/kg`;
@@ -77,17 +78,6 @@ export default function ProductosAdmin() {
       return `Desde $${minPrice.toLocaleString()}`;
     }
     return 'Sin precio';
-  };
-
-  // ✅ FUNCIÓN HELPER PARA OBTENER STOCK
-  const getProductStock = (product: Product) => {
-    if (product.totalStock !== undefined) {
-      return product.totalStock;
-    }
-    if (product.pricesByWeight && product.pricesByWeight.length > 0) {
-      return product.pricesByWeight.reduce((total, p) => total + (p.stock || 0), 0);
-    }
-    return 0;
   };
 
   // ✅ FUNCIÓN HELPER PARA OBTENER CATEGORÍAS

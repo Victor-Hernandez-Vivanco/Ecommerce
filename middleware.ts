@@ -11,7 +11,8 @@ function getClientIP(request: NextRequest): string {
   const cfConnectingIP = request.headers.get("cf-connecting-ip");
 
   if (forwarded) {
-    return forwarded.split(",")[0].trim();
+    const firstIP = forwarded.split(",")[0];
+    return firstIP ? firstIP.trim() : "unknown";
   }
 
   return realIP || cfConnectingIP || "unknown";

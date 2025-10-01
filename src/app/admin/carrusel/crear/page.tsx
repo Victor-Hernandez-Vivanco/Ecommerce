@@ -518,9 +518,10 @@ export default function CrearPublicidad() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,image/webp"
-                  onChange={(e) =>
-                    e.target.files && handleFileSelect(e.target.files[0])
-                  }
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileSelect(file);
+                  }}
                   className={styles.hiddenInput}
                 />
 
@@ -588,7 +589,7 @@ export default function CrearPublicidad() {
                       alt="Preview URL"
                       width={300}
                       height={94}
-                      className={styles.previewImage}
+                      className={styles.previewImage || ""}
                       onError={(error) => {
                         setErrors({ ...errors, image: error });
                       }}

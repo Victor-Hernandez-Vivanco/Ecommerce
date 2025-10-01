@@ -147,7 +147,7 @@ export default function EditarProducto() {
       setFormData(prev => ({
         ...prev,
         categories: newCategories,
-        category: newCategories[0]
+        category: newCategories[0] || ""
       }));
     } else {
       const newCategories = formData.categories.filter(cat => cat !== category);

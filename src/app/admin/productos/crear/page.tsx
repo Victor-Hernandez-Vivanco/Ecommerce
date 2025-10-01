@@ -84,7 +84,7 @@ export default function CrearProducto() {
       setFormData(prev => ({
         ...prev,
         categories: newCategories,
-        category: newCategories[0] // La primera será la principal
+        category: newCategories[0] || "" // La primera será la principal
       }));
     } else {
       // Remover categoría
@@ -123,8 +123,11 @@ export default function CrearProducto() {
   // ✅ MANEJAR CAMBIOS EN STOCK
   const handleStockChange = (index: number, stock: number) => {
     const newPrices = [...formData.pricesByWeight];
-    newPrices[index] = { ...newPrices[index], stock };
-    setFormData(prev => ({ ...prev, pricesByWeight: newPrices }));
+    const currentPrice = newPrices[index];
+    if (currentPrice) {
+      newPrices[index] = { ...currentPrice, stock };
+      setFormData(prev => ({ ...prev, pricesByWeight: newPrices }));
+    }
   };
 
   // ✅ MANEJAR MÚLTIPLES IMÁGENES
@@ -176,9 +179,10 @@ export default function CrearProducto() {
   // ✅ ELIMINAR IMAGEN
   const removeImage = (index: number) => {
     const newImages = formData.images.filter((_, i) => i !== index);
+    const removedImage = formData.images[index];
     
     // Si eliminamos la imagen principal, hacer principal la primera
-    if (formData.images[index].isPrimary && newImages.length > 0) {
+    if (removedImage?.isPrimary && newImages.length > 0 && newImages[0]) {
       newImages[0].isPrimary = true;
     }
     

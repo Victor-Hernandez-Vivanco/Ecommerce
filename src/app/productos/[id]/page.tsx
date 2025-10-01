@@ -17,6 +17,11 @@ import {
   FaInstagram,
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+import { 
+  getWeightOptions,
+  getProductMainImage,
+  type WeightOption 
+} from '@/utils/product';
 
 // ✅ INTERFAZ ACTUALIZADA PARA EL NUEVO MODELO
 interface Product {
@@ -40,13 +45,6 @@ interface Product {
   isMainCarousel?: boolean;
   discount: number;
   createdAt: string;
-}
-
-interface WeightOption {
-  weight: number;
-  price: number;
-  stock: number;
-  label: string;
 }
 
 // ✅ CONSTANTES PARA EL CARRUSEL - IGUAL QUE FEATUREDPRODUCTS
@@ -82,56 +80,7 @@ export default function ProductoPage() {
   const [isImageLoading, setIsImageLoading] = useState(false);
   
 
-  // ✅ FUNCIÓN PARA OBTENER IMAGEN CORRECTA
-  const getCorrectImagePath = useCallback((product: Product) => {
-    // Sistema nuevo: campo 'images' (array)
-    if (product.images && product.images.length > 0) {
-      const primaryImage = product.images.find((img) => img.isPrimary);
-      const imageUrl = primaryImage ? primaryImage.url : product.images[0].url;
 
-      // Si ya es una URL completa (http o /uploads/), devolverla tal como está
-      if (
-        imageUrl &&
-        (imageUrl.startsWith("http") || imageUrl.startsWith("/uploads/"))
-      ) {
-        return imageUrl;
-      }
-
-      // Si es solo el nombre del archivo, agregar la ruta completa
-      if (imageUrl) {
-        const fullPath = `/uploads/products/${imageUrl}`;
-        return fullPath;
-      }
-    }
-
-    // Sistema antiguo: campo 'image' (string)
-    if (product.image) {
-      // Si es una URL externa (Unsplash), devolverla tal como está
-      if (product.image.startsWith("http")) {
-        return product.image;
-      }
-
-      // Si ya tiene /uploads/, devolverla tal como está
-      if (product.image.startsWith("/uploads/")) {
-        return product.image;
-      }
-
-      // Si es solo el nombre del archivo, agregar la ruta completa
-      const fullPath = `/uploads/products/${product.image}`;
-      return fullPath;
-    }
-
-    // Fallback
-    return "/placeholder-product.jpg";
-  }, []);
-
-  // ✅ FUNCIÓN HELPER PARA OBTENER IMAGEN PRINCIPAL - MEMOIZADA
-  const getProductImage = useCallback(
-    (product: Product) => {
-      return getCorrectImagePath(product);
-    },
-    [getCorrectImagePath]
-  );
 
   // ✅ FUNCIÓN PARA OBTENER TODAS LAS IMÁGENES - MEMOIZADA
   const getAllImages = useCallback(
@@ -150,9 +99,9 @@ export default function ProductoPage() {
           return imageUrl;
         });
       }
-      return [getCorrectImagePath(product)];
+      return [getProductMainImage(product)];
     },
-    [getCorrectImagePath]
+    []
   );
 
   // ✅ FUNCIÓN PARA OBTENER IMAGEN ACTUAL - MEMOIZADA
@@ -302,7 +251,7 @@ export default function ProductoPage() {
     const cartItem = {
       productId: product._id,
       name: product.name,
-      image: getProductImage(product),
+      image: getProductMainImage(product),
       weight: selectedWeight.weight,
       price: selectedWeight.price,
       quantity: quantity,
@@ -857,7 +806,7 @@ export default function ProductoPage() {
                           >
                             <div className={styles.productImageContainer}>
                               <Image
-                                src={getProductImage(recProduct)}
+                                src={getProductMainImage(recProduct)}
                                 alt={recProduct.name}
                                 fill
                                 style={{ objectFit: "cover" }}

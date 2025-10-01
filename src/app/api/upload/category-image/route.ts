@@ -1,35 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
-import jwt from "jsonwebtoken";
-
-// Interfaz para el token decodificado
-interface DecodedToken {
-  userId: string;
-  isAdmin: boolean;
-  iat?: number;
-  exp?: number;
-}
-
-// Función para verificar token de admin
-const verifyAdminToken = (request: NextRequest) => {
-  const authHeader = request.headers.get("authorization");
-  const token = authHeader && authHeader.split(" ")[1];
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "tu_jwt_secret"
-    ) as DecodedToken;
-    return decoded.isAdmin ? decoded : null;
-  } catch {
-    return null;
-  }
-};
+import { verifyAdminToken } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
   try {

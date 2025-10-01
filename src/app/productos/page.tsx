@@ -8,6 +8,14 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useCart } from '../context/CartContext'
 import styles from './productos.module.css'
+import { 
+  getProductPrice, 
+  getProductStock, 
+  getWeightOptions,
+  getDiscountedPrice,
+  getSavings,
+  type WeightOption 
+} from '@/utils/product'
 
 // ✅ INTERFAZ ACTUALIZADA PARA EL NUEVO MODELO
 interface Product {
@@ -27,13 +35,6 @@ interface Product {
   featured: boolean
   discount: number
   createdAt: string
-}
-
-interface WeightOption {
-  weight: number
-  price: number
-  stock: number
-  label: string
 }
 
 export default function ProductosPage() {
@@ -66,42 +67,6 @@ export default function ProductosPage() {
     'Cereales',
     'Snack'
   ]
-
-  // ✅ FUNCIONES HELPER PARA OBTENER PRECIO Y STOCK
-  const getProductPrice = (product: Product) => {
-    if (product.basePricePer100g) {
-      return product.basePricePer100g
-    }
-    if (product.pricesByWeight && product.pricesByWeight.length > 0) {
-      return Math.min(...product.pricesByWeight.map(p => p.price))
-    }
-    return 0
-  }
-
-  const getProductStock = (product: Product) => {
-    if (product.totalStock !== undefined) {
-      return product.totalStock
-    }
-    if (product.pricesByWeight && product.pricesByWeight.length > 0) {
-      return product.pricesByWeight.reduce((total, p) => total + (p.stock || 0), 0)
-    }
-    return 0
-  }
-
-  // ✅ FUNCIÓN MODIFICADA PARA FILTRAR OPCIONES SIN STOCK
-  const getWeightOptions = (product: Product): WeightOption[] => {
-    if (product.pricesByWeight && product.pricesByWeight.length > 0) {
-      return product.pricesByWeight
-        .filter(pw => pw.stock > 0) // ✅ FILTRAR SOLO OPCIONES CON STOCK
-        .map(pw => ({
-          weight: pw.weight,
-          price: pw.price,
-          stock: pw.stock,
-          label: `${pw.weight}g`
-        }))
-    }
-    return []
-  }
 
   useEffect(() => {
     loadProducts()
@@ -218,19 +183,6 @@ export default function ProductosPage() {
   const closeDiscountModal = () => {
     setShowDiscountModal(false)
     setDiscountProduct(null)
-  }
-
-  // ✅ FUNCIÓN HELPER: Calcular precio con descuento
-  const getDiscountedPrice = (product: Product) => {
-    const originalPrice = getProductPrice(product)
-    return Math.round(originalPrice * (1 - product.discount / 100))
-  }
-
-  // ✅ FUNCIÓN HELPER: Calcular ahorro
-  const getSavings = (product: Product) => {
-    const originalPrice = getProductPrice(product)
-    const discountedPrice = getDiscountedPrice(product)
-    return originalPrice - discountedPrice
   }
 
   return (

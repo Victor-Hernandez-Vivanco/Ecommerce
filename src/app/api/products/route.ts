@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Product from "@/models/Product";
-import jwt from "jsonwebtoken";
+import { verifyAdminToken } from "@/utils/auth";
 
 // ✅ INTERFACES AGREGADAS
 interface PriceByWeight {
@@ -9,26 +9,6 @@ interface PriceByWeight {
   price: number;
   stock: number;
 }
-
-// Función para verificar token de admin
-const verifyAdminToken = (request: NextRequest) => {
-  const authHeader = request.headers.get("authorization");
-  const token = authHeader && authHeader.split(" ")[1];
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "tu_jwt_secret"
-    ) as { isAdmin: boolean };
-    return decoded.isAdmin ? decoded : null;
-  } catch {
-    return null;
-  }
-};
 
 // GET /api/products - Obtener todos los productos
 export async function GET() {

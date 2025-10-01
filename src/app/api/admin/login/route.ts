@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
+import { env } from "@/config/env";
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
         role: user.role,
         isAdmin: true,
       },
-      process.env.JWT_SECRET || "tu_jwt_secret",
+      env.JWT_SECRET,
       { expiresIn: "4h" }
     );
 

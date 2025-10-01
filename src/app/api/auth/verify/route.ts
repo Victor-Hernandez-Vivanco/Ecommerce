@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
+import { env } from "@/config/env";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,10 +21,7 @@ export async function GET(request: NextRequest) {
     interface JwtPayload {
       userId: string;
     }
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "tu_jwt_secret"
-    ) as JwtPayload;
+    const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
     const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
@@ -38,7 +36,7 @@ export async function GET(request: NextRequest) {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role // ✅ Agregar el role
+        role: user.role, // ✅ Agregar el role
       },
     });
   } catch (error) {

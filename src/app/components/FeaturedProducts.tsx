@@ -6,6 +6,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useCart } from '../context/CartContext'
 import styles from './FeaturedProducts.module.css'
+import { 
+  getProductPrice, 
+  getProductStock
+} from '@/utils/product'
 
 interface Product {
   _id: string
@@ -198,25 +202,6 @@ export default function FeaturedProducts() {
     closeQuickView()
   }
 
-  const getProductPrice = (product: Product) => {
-    if (product.basePricePer100g) {
-      return product.basePricePer100g
-    }
-    if (product.pricesByWeight && product.pricesByWeight.length > 0) {
-      return Math.min(...product.pricesByWeight.map(p => p.price))
-    }
-    return 0
-  }
-
-  const getProductStock = (product: Product) => {
-    if (product.totalStock !== undefined) {
-      return product.totalStock
-    }
-    if (product.pricesByWeight && product.pricesByWeight.length > 0) {
-      return product.pricesByWeight.reduce((total, p) => total + (p.stock || 0), 0)
-    }
-    return 0
-  }
 
   const goToProduct = (productId: string) => {
     router.push(`/productos/${productId}`)
